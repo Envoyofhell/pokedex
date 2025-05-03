@@ -23,9 +23,15 @@
         </div>
     </div>
 
-    <div class="main-container hidden" id="app-container"> <div id="dex-grid-view" class="dex-grid-view">
+    <div class="main-container hidden" id="app-container"> 
+        <div id="dex-grid-view" class="dex-grid-view">
             <div class="dex-header">
                 <h1 class="title-glow">Pokédex</h1>
+                <div class="header-tools">
+                    <button id="generator-button" class="tool-button generator-button">
+                        <i class="fas fa-dice"></i> Random Generator
+                    </button>
+                </div>
                 <div id="generation-tabs" class="generation-tabs"></div>
                 <div id="type-filter-buttons" class="type-filter-buttons"></div>
                 <div class="search-header">
@@ -33,71 +39,383 @@
                     <button id="search-button-main"><i class="fas fa-search"></i> Search</button>
                 </div>
             </div>
-            <div id="dex-grid-loader" class="subsequent-loader hidden"> <div class="spinner"></div> <p>Loading Pokémon...</p> </div>
+            <div id="dex-grid-loader" class="subsequent-loader hidden"> 
+                <div class="spinner"></div> 
+                <p>Loading Pokémon...</p> 
+            </div>
             <div id="pokedex-grid-container" class="pokedex-grid-container">
                 <ul class="pokedex-grid" id="pokedex-grid"></ul>
             </div>
         </div>
-
-    </div> <div id="detail-view-lightbox" class="detail-lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+    </div> 
+    
+    <div id="detail-view-lightbox" class="detail-lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="detail-lightbox-content">
-             <button id="detail-close-button" class="detail-lightbox-close" aria-label="Close details"> <i class="fas fa-times"></i> </button>
-            <div id="detail-loader" class="subsequent-loader hidden"> <div class="spinner"></div> <p>Fetching Pokémon details...</p> </div>
-            <div id="detail-error-message" class="error-message hidden"> <p id="detail-error-text"></p> </div>
+            <button id="detail-close-button" class="detail-lightbox-close" aria-label="Close details"> 
+                <i class="fas fa-times"></i> 
+            </button>
+            
+            <!-- Navigation buttons outside the detail view -->
+            <button id="prev-pokemon-button" class="pokemon-nav-button prev-button" aria-label="Previous Pokémon">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <button id="next-pokemon-button" class="pokemon-nav-button next-button" aria-label="Next Pokémon">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+            
+            <div id="detail-loader" class="subsequent-loader hidden"> 
+                <div class="spinner"></div> 
+                <p>Fetching Pokémon details...</p> 
+            </div>
+            <div id="detail-error-message" class="error-message hidden"> 
+                <p id="detail-error-text"></p> 
+            </div>
 
             <div id="pokemon-info" class="pokemon-info-grid hidden">
-                 <div id="content-section" class="content-section">
-                    <div class="pokemon-header"> <h2 id="pokemon-name-display">Pokémon Name</h2> <span id="pokemon-id">#000</span> </div>
-                     <div id="variant-selector-container" class="variant-selector-container hidden">
-                         <label for="variant-select">Form:</label>
-                         <select id="variant-select" class="variant-select"></select>
-                     </div>
-                     <div id="tabs" class="main-tabs">
-                         <button class="tab-button active" data-tab="game-info-tab">Game Info</button>
-                         <button class="tab-button" data-tab="card-info-tab">Card Info</button> </div>
-                     <div class="tab-content-area">
-                         <div id="game-info-tab" class="tab-content active">
-                            <div id="game-info-tabs" class="sub-tabs"> <button class="sub-tab-button active" data-subtab="summary-content">Summary</button> <button class="sub-tab-button" data-subtab="stats-content">Stats</button> <button class="sub-tab-button" data-subtab="abilities-content">Abilities</button> <button class="sub-tab-button" data-subtab="moves-content">Moves</button> </div>
+                <div id="content-section" class="content-section">
+                    <div class="pokemon-header"> 
+                        <div class="pokemon-title-container">
+                            <h2 id="pokemon-name-display">Pokémon Name</h2>
+                            <div id="pokemon-sound-control" class="sound-control hidden"></div>
+                        </div>
+                        <span id="pokemon-id">#000</span> 
+                    </div>
+                    <div id="variant-selector-container" class="variant-selector-container hidden">
+                        <label for="variant-select">Form:</label>
+                        <select id="variant-select" class="variant-select"></select>
+                    </div>
+                    <div id="tabs" class="main-tabs">
+                        <button class="tab-button active" data-tab="game-info-tab">Game Info</button>
+                        <button class="tab-button" data-tab="card-info-tab">Card Info</button> 
+                    </div>
+                    <div class="tab-content-area">
+                        <div id="game-info-tab" class="tab-content active">
+                            <div id="game-info-tabs" class="sub-tabs"> 
+                                <button class="sub-tab-button active" data-subtab="summary-content">Summary</button> 
+                                <button class="sub-tab-button" data-subtab="stats-content">Stats</button> 
+                                <button class="sub-tab-button" data-subtab="abilities-content">Abilities</button> 
+                                <button class="sub-tab-button" data-subtab="moves-content">Moves</button> 
+                            </div>
                             <div id="summary-content" class="sub-tab-content active">
-                                <div class="info-section"> <div class="info-section-title"> <span>Pokedex Entry</span> <select id="game-version-select" class="game-version-select"></select> </div> <p id="pokemon-description" class="pokemon-description">Select a game version...</p> </div>
-                                <div class="info-section grid grid-cols-2 gap-4"> <div> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Height</h4> <p id="pokemon-height" class="text-lg">-</p> </div> <div> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Weight</h4> <p id="pokemon-weight" class="text-lg">-</p> </div> </div>
-                                <div id="variant-info-section" class="info-section hidden"> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Note</h4> <p id="variant-info" class="text-sm text-[var(--color-text-secondary)] italic">This Pokémon has other forms (select above).</p> </div>
+                                <div class="info-section"> 
+                                    <div class="info-section-title"> 
+                                        <span>Pokedex Entry</span> 
+                                        <select id="game-version-select" class="game-version-select"></select> 
+                                    </div> 
+                                    <p id="pokemon-description" class="pokemon-description">Select a game version...</p> 
+                                </div>
+                                <div class="info-section grid grid-cols-2 gap-4"> 
+                                    <div> 
+                                        <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Height</h4> 
+                                        <p id="pokemon-height" class="text-lg">-</p> 
+                                    </div> 
+                                    <div> 
+                                        <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Weight</h4> 
+                                        <p id="pokemon-weight" class="text-lg">-</p> 
+                                    </div> 
+                                </div>
+                                <div id="spawn-rate-section" class="info-section hidden">
+                                    <!-- Spawn rate content will be populated by JavaScript -->
+                                </div>
+                                <div id="variant-info-section" class="info-section hidden"> 
+                                    <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Note</h4> 
+                                    <p id="variant-info" class="text-sm text-[var(--color-text-secondary)] italic">This Pokémon has other forms (select above).</p> 
+                                </div>
                             </div>
                             <div id="stats-content" class="sub-tab-content">
-                                 <div class="info-section"> <div class="info-section-title"> <span>Base Stats</span> <div id="stat-sort-buttons" class="stat-sort-buttons"> <button class="sort-button" data-sort="default">Default</button> <button class="sort-button" data-sort="desc">Val ↓</button> <button class="sort-button" data-sort="asc">Val ↑</button> </div> </div> <div id="stats-container" class="stats-container"></div> </div>
+                                <div class="info-section"> 
+                                    <div class="info-section-title"> 
+                                        <span>Base Stats</span> 
+                                        <div id="stat-sort-buttons" class="stat-sort-buttons"> 
+                                            <button class="sort-button" data-sort="default">Default</button> 
+                                            <button class="sort-button" data-sort="desc">Val ↓</button> 
+                                            <button class="sort-button" data-sort="asc">Val ↑</button> 
+                                        </div> 
+                                    </div> 
+                                    <div id="stats-container" class="stats-container"></div>
+                                </div>
                             </div>
                             <div id="abilities-content" class="sub-tab-content">
-                                 <div class="info-section"> <h3 class="info-section-title">Abilities</h3> <ul id="abilities-list" class="abilities-list"></ul> </div>
+                                <div class="info-section"> 
+                                    <h3 class="info-section-title">Abilities</h3> 
+                                    <ul id="abilities-list" class="abilities-list"></ul> 
+                                </div>
                             </div>
                             <div id="moves-content" class="sub-tab-content">
-                                 <div class="info-section">
-                                     <h3 class="info-section-title">Moves (Level Up)</h3>
-                                     <ul id="moves-list" class="moves-list"> <li class="italic text-[var(--color-text-secondary)]">Loading moves...</li> </ul>
-                                     <div id="moves-pagination" class="moves-pagination hidden"> <button id="prev-move-page" class="pagination-button" disabled>&lt; Prev</button> <span id="move-page-info">Page 1 of 1</span> <button id="next-move-page" class="pagination-button" disabled>Next &gt;</button> </div>
-                                 </div>
+                                <div class="info-section">
+                                    <h3 class="info-section-title">Moves (Level Up)</h3>
+                                    <ul id="moves-list" class="moves-list"> 
+                                        <li class="italic text-[var(--color-text-secondary)]">Loading moves...</li> 
+                                    </ul>
+                                    <div id="moves-pagination" class="moves-pagination hidden"> 
+                                        <button id="prev-move-page" class="pagination-button" disabled>&lt; Prev</button> 
+                                        <span id="move-page-info">Page 1 of 1</span> 
+                                        <button id="next-move-page" class="pagination-button" disabled>Next &gt;</button> 
+                                    </div>
+                                </div>
                             </div>
-                         </div>
-                         <div id="card-info-tab" class="tab-content">
-                             <h3 class="info-section-title !text-[var(--color-text-primary)]">Trading Card Game Info</h3>
-                             <div class="tcg-search-bar"> <input type="text" id="tcg-search" placeholder="Filter cards by name/text..."> <button id="tcg-search-button">Filter</button> </div>
-                             <div id="tcg-loader" class="subsequent-loader hidden"> <div class="spinner spinner-sm"></div> <p>Loading TCG cards...</p> </div>
-                             <div id="tcg-error" class="error-message error-subtle hidden"> <p id="tcg-error-text"></p> </div>
-                             <div id="tcg-cards-container" class="tcg-cards-container"> </div>
-                         </div>
-                     </div>
+                        </div>
+                        <div id="card-info-tab" class="tab-content">
+                            <h3 class="info-section-title !text-[var(--color-text-primary)]">Trading Card Game Info</h3>
+                            
+                            <div class="tcg-filters">
+                                <div class="tcg-search-bar"> 
+                                    <input type="text" id="tcg-search" placeholder="Filter cards by name/text..."> 
+                                    <button id="tcg-search-button">Filter</button> 
+                                </div>
+                                
+                                <div id="tcg-filter-container" class="tcg-filter-container">
+                                    <div class="tcg-filter-group">
+                                        <label for="tcg-type-filter">Type:</label>
+                                        <select id="tcg-type-filter" class="tcg-filter-select"></select>
+                                    </div>
+                                    
+                                    <div class="tcg-filter-group">
+                                        <label for="tcg-rarity-filter">Rarity:</label>
+                                        <select id="tcg-rarity-filter" class="tcg-filter-select"></select>
+                                    </div>
+                                    
+                                    <div class="tcg-filter-group">
+                                        <label for="tcg-set-filter">Set:</label>
+                                        <select id="tcg-set-filter" class="tcg-filter-select"></select>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div id="tcg-loader" class="subsequent-loader hidden"> 
+                                <div class="spinner spinner-sm"></div> 
+                                <p>Loading TCG cards...</p> 
+                            </div>
+                            <div id="tcg-error" class="error-message error-subtle hidden"> 
+                                <p id="tcg-error-text"></p> 
+                            </div>
+                            <div id="tcg-cards-container" class="tcg-cards-container"> </div>
+                        </div>
+                    </div>
                 </div>
                 <div id="visual-section" class="visual-section">
-                     <div id="pokemon-image-container" class="pokemon-image-container"> <img id="pokemon-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Pokemon Image"> <div class="image-buttons-container"> <button id="gender-toggle" class="gender-toggle hidden" title="Toggle Gender"> <i class="fas fa-venus-mars"></i> </button> <button id="shiny-toggle" class="shiny-toggle" title="Toggle Shiny"> <i class="fas fa-star"></i> </button> </div> </div>
+                    <div id="pokemon-image-container" class="pokemon-image-container"> 
+                        <img id="pokemon-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Pokemon Image"> 
+                        <div class="image-buttons-container"> 
+                            <button id="gender-toggle" class="gender-toggle hidden" title="Toggle Gender"> 
+                                <i class="fas fa-venus-mars"></i> 
+                            </button> 
+                            <button id="shiny-toggle" class="shiny-toggle" title="Toggle Shiny"> 
+                                <i class="fas fa-star"></i> 
+                            </button> 
+                        </div> 
+                    </div>
                     <div id="pokemon-types" class="pokemon-types"></div>
                 </div>
-            </div> </div> </div> <div id="tcg-lightbox" class="lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+            </div> 
+        </div> 
+    </div> 
+    
+    <div id="tcg-lightbox" class="lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
         <div class="lightbox-content">
-            <div class="lightbox-header"> <h3 id="lightbox-card-name" class="lightbox-title">Card Details</h3> <button id="lightbox-close" class="lightbox-close" aria-label="Close card viewer"> <i class="fas fa-times"></i> </button> </div>
-            <div class="lightbox-body"> <div class="lightbox-image-container"> <img id="lightbox-card-image" src="" alt="TCG Card Image"> </div> <div id="lightbox-card-details" class="lightbox-details"> <p>Loading details...</p> </div> </div>
+            <div class="lightbox-header"> 
+                <h3 id="lightbox-card-name" class="lightbox-title">Card Details</h3> 
+                <button id="lightbox-close" class="lightbox-close" aria-label="Close card viewer"> 
+                    <i class="fas fa-times"></i> 
+                </button> 
+            </div>
+            <div class="lightbox-body"> 
+                <div class="lightbox-image-container"> 
+                    <img id="lightbox-card-image" src="" alt="TCG Card Image"> 
+                </div> 
+                <div id="lightbox-card-details" class="lightbox-details"> 
+                    <p>Loading details...</p> 
+                </div> 
+            </div>
         </div>
     </div>
-
-    <script src="dex/dex.js"></script>
+    
+    <!-- Random Generator Overlay -->
+    <div id="generator-overlay" class="generator-overlay hidden">
+        <div class="generator-container">
+            <div class="generator-header">
+                <h2>Random Pokémon Generator</h2>
+                <button id="generator-close-button" class="generator-close-button" aria-label="Close generator">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="generator-content">
+                <div class="generator-controls">
+                    <form id="generator-form" class="generator-form">
+                        <div class="generator-section">
+                            <h3>General Options</h3>
+                            <div class="generator-option">
+                                <label for="generator-count">Number of Pokémon:</label>
+                                <select id="generator-count" name="generator-count">
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
+                                    <option value="6" selected>6</option>
+                                </select>
+                            </div>
+                            
+                            <div class="generator-option">
+                                <label>Regions:</label>
+                                <div id="generator-regions-container" class="generator-checkbox-container scrollable">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                            
+                            <div class="generator-option">
+                                <label>Types (optional filter):</label>
+                                <div id="generator-types-container" class="generator-checkbox-container scrollable">
+                                    <!-- Populated dynamically -->
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="generator-section">
+                            <h3>Pokémon Categories</h3>
+                            <div class="generator-option">
+                                <div class="checkbox-grid">
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-legendaries" name="generator-legendaries" checked>
+                                        <span class="checkmark"></span>
+                                        Legendary
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-sublegendaries" name="generator-sublegendaries" checked>
+                                        <span class="checkmark"></span>
+                                        Sub-Legendary
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-mythicals" name="generator-mythicals" checked>
+                                        <span class="checkmark"></span>
+                                        Mythical
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-ultrabeasts" name="generator-ultrabeasts" checked>
+                                        <span class="checkmark"></span>
+                                        Ultra Beast
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-paradoxes" name="generator-paradoxes" checked>
+                                        <span class="checkmark"></span>
+                                        Paradox
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="generator-section">
+                            <h3>Forms & Evolution</h3>
+                            <div class="generator-option">
+                                <div class="checkbox-grid">
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-forms" name="generator-forms" checked>
+                                        <span class="checkmark"></span>
+                                        Alternate Forms
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-megas" name="generator-megas" checked>
+                                        <span class="checkmark"></span>
+                                        Mega Evolutions
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-gigantamax" name="generator-gigantamax" checked>
+                                        <span class="checkmark"></span>
+                                        Gigantamax Forms
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="generator-option">
+                                <div class="checkbox-grid">
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-nfes" name="generator-nfes" checked>
+                                        <span class="checkmark"></span>
+                                        Not Fully Evolved
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-fully-evolved" name="generator-fully-evolved" checked>
+                                        <span class="checkmark"></span>
+                                        Fully Evolved
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="generator-option">
+                                <label>Evolution Stages:</label>
+                                <div class="checkbox-grid">
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-unevolved" name="generator-evolution-count" value="0" checked>
+                                        <span class="checkmark"></span>
+                                        Unevolved
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-evolved-once" name="generator-evolution-count" value="1" checked>
+                                        <span class="checkmark"></span>
+                                        First Evolution
+                                    </label>
+                                    <label class="generator-checkbox">
+                                        <input type="checkbox" id="generator-evolved-twice" name="generator-evolution-count" value="2" checked>
+                                        <span class="checkmark"></span>
+                                        Second Evolution
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="generator-section">
+                            <h3>Additional Options</h3>
+                            <div class="generator-option">
+                                <label class="generator-checkbox">
+                                    <input type="checkbox" id="generator-shiny-boost" name="generator-shiny-boost">
+                                    <span class="checkmark special"></span>
+                                    Boosted Shiny Rate (1%)
+                                </label>
+                            </div>
+                            
+                            <button type="submit" class="generator-submit-button">Generate!</button>
+                        </div>
+                    </form>
+                </div>
+                
+                <div class="generator-results-section">
+                    <div class="generator-history-controls">
+                        <button id="generator-prev-button" class="generator-history-button" disabled>
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <button id="generator-next-button" class="generator-history-button" disabled>
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                    
+                    <div id="generator-loader" class="subsequent-loader hidden">
+                        <div class="spinner"></div>
+                        <p>Generating Pokémon...</p>
+                    </div>
+                    
+                    <div id="generator-results-container" class="generator-results-container">
+                        <!-- Generated results will appear here -->
+                    </div>
+                    
+                    <div class="generator-shiny-section">
+                        <h3>Shiny Pokémon Found <span id="shiny-count">(0)</span></h3>
+                        <div id="generator-shiny-history" class="generator-shiny-history">
+                            <p class="no-shinies">No shiny Pokémon found yet. Keep generating!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- Scripts must be loaded in this order -->
+<script src="dex/js/modules/utils.js"></script>
+<script src="dex/js/modules/api.js"></script>
+<script src="dex/js/modules/dexGrid.js"></script>
+<script src="dex/js/modules/detailView.js"></script>
+<script src="dex/js/modules/tcgModule.js"></script>
+<script src="dex/js/modules/generator.js"></script>
+<script src="dex/js/main.js"></script>
 
 </body>
 </html>
