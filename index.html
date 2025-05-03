@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Pokedex Viewer</title>
+    <link rel="stylesheet" href="dex/dex.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div id="initial-loading-overlay" class="initial-loading-overlay">
+        <div class="loaderBody">
+            <div class="progress">
+                <div class="loader-text">
+                    <span class="element" style="--index:1;">L</span><span class="element" style="--index:2;">O</span><span class="element" style="--index:3;">A</span><span class="element" style="--index:4;">D</span><span class="element" style="--index:5;">I</span><span class="element" style="--index:6;">N</span><span class="element" style="--index:7;">G</span><span class="element" style="--index:8;">&nbsp;</span><span class="element" style="--index:9;">P</span><span class="element" style="--index:10;">O</span><span class="element" style="--index:11;">K</span><span class="element" style="--index:12;">É</span><span class="element" style="--index:13;">D</span><span class="element" style="--index:14;">E</span><span class="element" style="--index:15;">X</span><span class="element" style="--index:16;">.</span><span class="element" style="--index:17;">.</span><span class="element" style="--index:18;">.</span>
+                </div>
+                <div class="progressBar"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-container hidden" id="app-container"> <div id="dex-grid-view" class="dex-grid-view">
+            <div class="dex-header">
+                <h1 class="title-glow">Pokédex</h1>
+                <div id="generation-tabs" class="generation-tabs"></div>
+                <div id="type-filter-buttons" class="type-filter-buttons"></div>
+                <div class="search-header">
+                    <input type="text" id="pokemon-search-main" placeholder="Search Name/ID for Details">
+                    <button id="search-button-main"><i class="fas fa-search"></i> Search</button>
+                </div>
+            </div>
+            <div id="dex-grid-loader" class="subsequent-loader hidden"> <div class="spinner"></div> <p>Loading Pokémon...</p> </div>
+            <div id="pokedex-grid-container" class="pokedex-grid-container">
+                <ul class="pokedex-grid" id="pokedex-grid"></ul>
+            </div>
+        </div>
+
+    </div> <div id="detail-view-lightbox" class="detail-lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="detail-lightbox-content">
+             <button id="detail-close-button" class="detail-lightbox-close" aria-label="Close details"> <i class="fas fa-times"></i> </button>
+            <div id="detail-loader" class="subsequent-loader hidden"> <div class="spinner"></div> <p>Fetching Pokémon details...</p> </div>
+            <div id="detail-error-message" class="error-message hidden"> <p id="detail-error-text"></p> </div>
+
+            <div id="pokemon-info" class="pokemon-info-grid hidden">
+                 <div id="content-section" class="content-section">
+                    <div class="pokemon-header"> <h2 id="pokemon-name-display">Pokémon Name</h2> <span id="pokemon-id">#000</span> </div>
+                     <div id="variant-selector-container" class="variant-selector-container hidden">
+                         <label for="variant-select">Form:</label>
+                         <select id="variant-select" class="variant-select"></select>
+                     </div>
+                     <div id="tabs" class="main-tabs">
+                         <button class="tab-button active" data-tab="game-info-tab">Game Info</button>
+                         <button class="tab-button" data-tab="card-info-tab">Card Info</button> </div>
+                     <div class="tab-content-area">
+                         <div id="game-info-tab" class="tab-content active">
+                            <div id="game-info-tabs" class="sub-tabs"> <button class="sub-tab-button active" data-subtab="summary-content">Summary</button> <button class="sub-tab-button" data-subtab="stats-content">Stats</button> <button class="sub-tab-button" data-subtab="abilities-content">Abilities</button> <button class="sub-tab-button" data-subtab="moves-content">Moves</button> </div>
+                            <div id="summary-content" class="sub-tab-content active">
+                                <div class="info-section"> <div class="info-section-title"> <span>Pokedex Entry</span> <select id="game-version-select" class="game-version-select"></select> </div> <p id="pokemon-description" class="pokemon-description">Select a game version...</p> </div>
+                                <div class="info-section grid grid-cols-2 gap-4"> <div> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Height</h4> <p id="pokemon-height" class="text-lg">-</p> </div> <div> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Weight</h4> <p id="pokemon-weight" class="text-lg">-</p> </div> </div>
+                                <div id="variant-info-section" class="info-section hidden"> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Note</h4> <p id="variant-info" class="text-sm text-[var(--color-text-secondary)] italic">This Pokémon has other forms (select above).</p> </div>
+                            </div>
+                            <div id="stats-content" class="sub-tab-content">
+                                 <div class="info-section"> <div class="info-section-title"> <span>Base Stats</span> <div id="stat-sort-buttons" class="stat-sort-buttons"> <button class="sort-button" data-sort="default">Default</button> <button class="sort-button" data-sort="desc">Val ↓</button> <button class="sort-button" data-sort="asc">Val ↑</button> </div> </div> <div id="stats-container" class="stats-container"></div> </div>
+                            </div>
+                            <div id="abilities-content" class="sub-tab-content">
+                                 <div class="info-section"> <h3 class="info-section-title">Abilities</h3> <ul id="abilities-list" class="abilities-list"></ul> </div>
+                            </div>
+                            <div id="moves-content" class="sub-tab-content">
+                                 <div class="info-section">
+                                     <h3 class="info-section-title">Moves (Level Up)</h3>
+                                     <ul id="moves-list" class="moves-list"> <li class="italic text-[var(--color-text-secondary)]">Loading moves...</li> </ul>
+                                     <div id="moves-pagination" class="moves-pagination hidden"> <button id="prev-move-page" class="pagination-button" disabled>&lt; Prev</button> <span id="move-page-info">Page 1 of 1</span> <button id="next-move-page" class="pagination-button" disabled>Next &gt;</button> </div>
+                                 </div>
+                            </div>
+                         </div>
+                         <div id="card-info-tab" class="tab-content">
+                             <h3 class="info-section-title !text-[var(--color-text-primary)]">Trading Card Game Info</h3>
+                             <div class="tcg-search-bar"> <input type="text" id="tcg-search" placeholder="Filter cards by name/text..."> <button id="tcg-search-button">Filter</button> </div>
+                             <div id="tcg-loader" class="subsequent-loader hidden"> <div class="spinner spinner-sm"></div> <p>Loading TCG cards...</p> </div>
+                             <div id="tcg-error" class="error-message error-subtle hidden"> <p id="tcg-error-text"></p> </div>
+                             <div id="tcg-cards-container" class="tcg-cards-container"> </div>
+                         </div>
+                     </div>
+                </div>
+                <div id="visual-section" class="visual-section">
+                     <div id="pokemon-image-container" class="pokemon-image-container"> <img id="pokemon-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Pokemon Image"> <div class="image-buttons-container"> <button id="gender-toggle" class="gender-toggle hidden" title="Toggle Gender"> <i class="fas fa-venus-mars"></i> </button> <button id="shiny-toggle" class="shiny-toggle" title="Toggle Shiny"> <i class="fas fa-star"></i> </button> </div> </div>
+                    <div id="pokemon-types" class="pokemon-types"></div>
+                </div>
+            </div> </div> </div> <div id="tcg-lightbox" class="lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="lightbox-content">
+            <div class="lightbox-header"> <h3 id="lightbox-card-name" class="lightbox-title">Card Details</h3> <button id="lightbox-close" class="lightbox-close" aria-label="Close card viewer"> <i class="fas fa-times"></i> </button> </div>
+            <div class="lightbox-body"> <div class="lightbox-image-container"> <img id="lightbox-card-image" src="" alt="TCG Card Image"> </div> <div id="lightbox-card-details" class="lightbox-details"> <p>Loading details...</p> </div> </div>
+        </div>
+    </div>
+
+    <script src="dex/dex.js"></script>
+
+</body>
+</html>
