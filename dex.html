@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Pokedex Viewer</title>
+    <link rel="stylesheet" href="dex/dex.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css" integrity="sha512-xh6O/CkQoPOWDdYTDqeRdPCVd1SpvCA9XXcUnZS2FmJNp1coAFzvtCN9BmamE+4aHK8yyUHUSCcJHgXloTyT2A==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="main-container" id="app-container">
+
+        <div id="dex-grid-view" class="dex-grid-view">
+            <div class="dex-header">
+                <h1>Pokédex</h1>
+                <div id="generation-tabs" class="generation-tabs">
+                    <button class="gen-tab-button active" data-generation="1">Gen 1</button>
+                    <button class="gen-tab-button" data-generation="2">Gen 2</button>
+                    <button class="gen-tab-button" data-generation="3">Gen 3</button>
+                    <button class="gen-tab-button" data-generation="4">Gen 4</button>
+                    <button class="gen-tab-button" data-generation="5">Gen 5</button>
+                    <button class="gen-tab-button" data-generation="6">Gen 6</button>
+                    <button class="gen-tab-button" data-generation="7">Gen 7</button>
+                    <button class="gen-tab-button" data-generation="8">Gen 8</button>
+                    <button class="gen-tab-button" data-generation="9">Gen 9</button>
+                </div>
+                <div class="search-header">
+                    <input type="text" id="pokemon-search-main" placeholder="Search Name/ID for Details">
+                    <button id="search-button-main">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+            <div id="dex-grid-loader" class="subsequent-loader"> <div class="spinner"></div>
+                 <p>Loading Pokémon...</p>
+            </div>
+            <div id="pokedex-grid-container" class="pokedex-grid-container">
+                <ul class="pokedex-grid" id="pokedex-grid">
+                    </ul>
+            </div>
+        </div>
+
+    </div> <div id="detail-view-lightbox" class="detail-lightbox-overlay hidden" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="detail-lightbox-content">
+             <button id="detail-close-button" class="detail-lightbox-close" aria-label="Close details">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <div id="detail-loader" class="subsequent-loader hidden">
+                <div class="spinner"></div>
+                <p>Fetching Pokémon details...</p>
+            </div>
+
+            <div id="detail-error-message" class="error-message hidden">
+                <p id="detail-error-text"></p>
+            </div>
+
+            <div id="pokemon-info" class="pokemon-info-grid hidden">
+                 <div id="content-section" class="content-section">
+                    <div class="pokemon-header">
+                         <h2 id="pokemon-name-display">Pokémon Name</h2>
+                         <span id="pokemon-id">#000</span>
+                    </div>
+
+                     <div id="tabs" class="main-tabs">
+                         <button class="tab-button active" data-tab="game-info-tab">Game Info</button>
+                         <button class="tab-button" data-tab="card-info-tab">Card Info</button>
+                     </div>
+
+                     <div class="tab-content-area">
+                         <div id="game-info-tab" class="tab-content active">
+                            <div id="game-info-tabs" class="sub-tabs">
+                                <button class="sub-tab-button active" data-subtab="summary-content">Summary</button>
+                                <button class="sub-tab-button" data-subtab="stats-content">Stats</button>
+                                <button class="sub-tab-button" data-subtab="abilities-content">Abilities</button>
+                                <button class="sub-tab-button" data-subtab="moves-content">Moves</button>
+                            </div>
+
+                            <div id="summary-content" class="sub-tab-content active">
+                                <div class="info-section">
+                                    <div class="info-section-title">
+                                        <span>Pokedex Entry</span>
+                                        <select id="game-version-select" class="game-version-select">
+                                            </select>
+                                    </div>
+                                    <p id="pokemon-description" class="pokemon-description">Select a game version...</p>
+                                </div>
+                                <div class="info-section grid grid-cols-2 gap-4">
+                                     <div> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Height</h4> <p id="pokemon-height" class="text-lg">-</p> </div>
+                                     <div> <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">Weight</h4> <p id="pokemon-weight" class="text-lg">-</p> </div>
+                                </div>
+                            </div>
+
+                            <div id="stats-content" class="sub-tab-content">
+                                 <div class="info-section">
+                                     <div class="info-section-title">
+                                        <span>Base Stats</span>
+                                        <div id="stat-sort-buttons" class="stat-sort-buttons">
+                                            <button class="sort-button" data-sort="default">Default</button> <button class="sort-button" data-sort="desc">Val ↓</button>
+                                            <button class="sort-button" data-sort="asc">Val ↑</button>
+                                        </div>
+                                     </div>
+                                     <div id="stats-container" class="stats-container"></div>
+                                 </div>
+                            </div>
+
+                            <div id="abilities-content" class="sub-tab-content">
+                                 <div class="info-section">
+                                     <h3 class="info-section-title">Abilities</h3>
+                                     <ul id="abilities-list" class="abilities-list"></ul>
+                                 </div>
+                            </div>
+
+                            <div id="moves-content" class="sub-tab-content">
+                                 <div class="info-section">
+                                     <h3 class="info-section-title">Moves (Level Up)</h3>
+                                     <ul id="moves-list" class="moves-list">
+                                         <li class="italic text-[var(--color-text-secondary)]">Loading moves...</li>
+                                     </ul>
+                                 </div>
+                            </div>
+                         </div>
+
+                         <div id="card-info-tab" class="tab-content">
+                             <h3 class="info-section-title !text-[var(--color-text-primary)]">Trading Card Game Info</h3>
+                             <div class="tcg-search-bar">
+                                 <input type="text" id="tcg-search" placeholder="Filter cards by name/text...">
+                                 <button id="tcg-search-button">Filter</button>
+                             </div>
+                             <div id="tcg-loader" class="subsequent-loader hidden">
+                                 <div class="spinner spinner-sm"></div>
+                                 <p>Loading TCG cards...</p>
+                             </div>
+                             <div id="tcg-error" class="error-message error-subtle hidden">
+                                 <p id="tcg-error-text"></p>
+                             </div>
+                             <div id="tcg-cards-container" class="tcg-cards-container">
+                                 </div>
+                         </div>
+                     </div>
+                </div>
+
+                <div id="visual-section" class="visual-section">
+                     <div id="pokemon-image-container" class="pokemon-image-container">
+                        <img id="pokemon-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Pokemon Image"> <button id="shiny-toggle" class="shiny-toggle" title="Toggle Shiny">
+                            <i class="fas fa-star"></i>
+                        </button>
+                    </div>
+                    <div id="pokemon-types" class="pokemon-types"></div>
+                </div>
+            </div> </div> </div> <div id="tcg-lightbox" class="lightbox-overlay" role="dialog" aria-modal="true" aria-hidden="true">
+        <div class="lightbox-content">
+            <div class="lightbox-header">
+                <h3 id="lightbox-card-name" class="lightbox-title">Card Details</h3>
+                <button id="lightbox-close" class="lightbox-close" aria-label="Close card viewer">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="lightbox-body">
+                <div class="lightbox-image-container">
+                    <img id="lightbox-card-image" src="" alt="TCG Card Image">
+                </div>
+                <div id="lightbox-card-details" class="lightbox-details">
+                    <p>Loading details...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        // --- Constants ---
+        const TCG_API_KEY = 'a65acbfc-55e5-4d2c-9278-253872a1bc5a'; // Get yours from https://dev.pokemontcg.io/
+        const MAX_MOVES_DISPLAY = 50;
+        const POKEAPI_BASE_URL = 'https://pokeapi.co/api/v2';
+        const GENERATION_RANGES = { /* ... (same as before) ... */
+            1: { limit: 151, offset: 0 }, 2: { limit: 100, offset: 151 }, 3: { limit: 135, offset: 251 },
+            4: { limit: 107, offset: 386 }, 5: { limit: 156, offset: 493 }, 6: { limit: 72, offset: 649 },
+            7: { limit: 88, offset: 721 }, 8: { limit: 96, offset: 809 }, 9: { limit: 120, offset: 905 }
+        };
+
+        // --- State Variables ---
+        let currentPokemonData = null; let currentSpeciesData = null; let currentFlavorTextEntries = [];
+        let currentStats = []; let currentMoves = []; let currentTcgCards = []; let filteredTcgCards = [];
+        let isShiny = false; let currentStatSort = 'default'; let activeSubTab = 'summary-content';
+        let currentGeneration = 1; let fullPokemonListCache = {}; let detailedPokemonCache = {};
+
+        // --- DOM Elements ---
+        const appContainer = document.getElementById('app-container');
+        const dexGridView = document.getElementById('dex-grid-view');
+        const detailViewLightbox = document.getElementById('detail-view-lightbox'); // Renamed
+        const detailCloseButton = document.getElementById('detail-close-button'); // New close button
+        const generationTabsContainer = document.getElementById('generation-tabs');
+        const mainSearchInput = document.getElementById('pokemon-search-main');
+        const mainSearchButton = document.getElementById('search-button-main');
+        const pokedexGrid = document.getElementById('pokedex-grid');
+        const dexGridLoader = document.getElementById('dex-grid-loader');
+        // Detail View Elements (prefix with 'detail' for clarity)
+        const detailLoader = document.getElementById('detail-loader');
+        const detailErrorMessageDiv = document.getElementById('detail-error-message');
+        const detailErrorText = document.getElementById('detail-error-text');
+        const detailPokemonInfoDiv = document.getElementById('pokemon-info');
+        const detailContentSection = document.getElementById('content-section');
+        const detailVisualSection = document.getElementById('visual-section');
+        const detailPokemonNameDisplay = document.getElementById('pokemon-name-display');
+        const detailPokemonIdSpan = document.getElementById('pokemon-id');
+        const detailGameVersionSelect = document.getElementById('game-version-select');
+        const detailPokemonDescriptionP = document.getElementById('pokemon-description');
+        const detailPokemonHeightP = document.getElementById('pokemon-height');
+        const detailPokemonWeightP = document.getElementById('pokemon-weight');
+        const detailStatSortButtonsContainer = document.getElementById('stat-sort-buttons');
+        const detailStatsContainer = document.getElementById('stats-container');
+        const detailAbilitiesList = document.getElementById('abilities-list');
+        const detailMovesList = document.getElementById('moves-list');
+        const detailPokemonImage = document.getElementById('pokemon-image');
+        const detailPokemonImageContainer = document.getElementById('pokemon-image-container');
+        const detailShinyToggleButton = document.getElementById('shiny-toggle');
+        const detailPokemonTypesDiv = document.getElementById('pokemon-types');
+        const detailMainTabsContainer = document.getElementById('tabs');
+        const detailMainTabButtons = detailMainTabsContainer.querySelectorAll('.tab-button');
+        const detailMainTabContents = detailContentSection.querySelectorAll('.tab-content');
+        const detailGameInfoTabContainer = document.getElementById('game-info-tab');
+        const detailGameInfoTabsContainer = document.getElementById('game-info-tabs');
+        const detailSubTabButtons = detailGameInfoTabsContainer.querySelectorAll('.sub-tab-button');
+        const detailSubTabContents = detailGameInfoTabContainer.querySelectorAll('.sub-tab-content');
+        const detailTcgSearchInput = document.getElementById('tcg-search');
+        const detailTcgSearchButton = document.getElementById('tcg-search-button');
+        const detailTcgLoader = document.getElementById('tcg-loader');
+        const detailTcgErrorDiv = document.getElementById('tcg-error');
+        const detailTcgErrorText = document.getElementById('tcg-error-text');
+        const detailTcgCardsContainer = document.getElementById('tcg-cards-container');
+        // TCG Lightbox Elements
+        const tcgLightbox = document.getElementById('tcg-lightbox');
+        const lightboxCloseButton = document.getElementById('lightbox-close');
+        const lightboxCardName = document.getElementById('lightbox-card-name');
+        const lightboxCardImage = document.getElementById('lightbox-card-image');
+        const lightboxCardDetails = document.getElementById('lightbox-card-details');
+
+        // --- Stat Name Mapping & Helpers ---
+        const statNameMapping = { 'hp': 'HP', 'attack': 'Attack', 'defense': 'Defense', 'special-attack': 'Sp. Atk', 'special-defense': 'Sp. Def', 'speed': 'Speed' };
+        const defaultStatOrder = ['hp', 'attack', 'defense', 'special-attack', 'special-defense', 'speed'];
+        const cleanFlavorText = (text) => text.replace(/[\n\f\u00ad]/g, ' ');
+        const capitalize = (s) => s && s[0].toUpperCase() + s.slice(1);
+        const formatVersionName = (name) => name.split('-').map(capitalize).join(' ');
+        const getPokemonIdFromUrl = (url) => url.split('/').filter(Boolean).pop();
+
+        // --- View Switching ---
+        function openDetailLightbox() {
+            detailViewLightbox.classList.remove('hidden');
+            // Add class to trigger transition after display is set
+            requestAnimationFrame(() => {
+                 detailViewLightbox.classList.add('visible');
+            });
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        }
+
+        function closeDetailLightbox() {
+            detailViewLightbox.classList.remove('visible');
+             // Remove from DOM after transition
+            detailViewLightbox.addEventListener('transitionend', () => {
+                 if (!detailViewLightbox.classList.contains('visible')) {
+                     detailViewLightbox.classList.add('hidden');
+                 }
+            }, { once: true });
+             // Fallback timeout
+             setTimeout(() => {
+                 if (!detailViewLightbox.classList.contains('visible')) {
+                     detailViewLightbox.classList.add('hidden');
+                 }
+             }, 500); // Match transition duration
+            document.body.style.overflow = ''; // Restore background scroll
+        }
+
+
+        // --- Fetch Functions ---
+
+        // Fetch Pokemon LIST for a specific generation (for Dex Grid)
+        async function fetchGenerationList(genNumber) {
+            // ... (Function remains the same as previous version) ...
+            if (fullPokemonListCache[genNumber]) return fullPokemonListCache[genNumber];
+            console.log(`Fetching list for Gen ${genNumber}`);
+            const range = GENERATION_RANGES[genNumber]; if (!range) return [];
+            const url = `${POKEAPI_BASE_URL}/generation/${genNumber}`;
+            try {
+                const response = await fetch(url); if (!response.ok) throw new Error(`Failed Gen ${genNumber}`);
+                const data = await response.json();
+                const pokemonList = data.pokemon_species.map(species => ({ name: species.name, id: getPokemonIdFromUrl(species.url), url: `${POKEAPI_BASE_URL}/pokemon/${getPokemonIdFromUrl(species.url)}` })).sort((a, b) => a.id - b.id);
+                fullPokemonListCache[genNumber] = pokemonList; return pokemonList;
+            } catch (error) { console.error(`Error fetching Gen ${genNumber} list:`, error); showDexGridError(`Failed to load Gen ${genNumber}.`); return []; }
+        }
+
+        // Fetch DETAILED Pokemon data (for Detail View or Grid Card enhancement)
+        async function fetchDetailedPokemonData(identifier) {
+            // ... (Function remains the same as previous version) ...
+            const cacheKey = String(identifier).toLowerCase(); if (detailedPokemonCache[cacheKey]) return detailedPokemonCache[cacheKey];
+            console.log(`Fetching detail for ${identifier}`); const pokemonUrl = `${POKEAPI_BASE_URL}/pokemon/${identifier}`; const speciesUrl = `${POKEAPI_BASE_URL}/pokemon-species/${identifier}`;
+            try {
+                const [pokemonRes, speciesRes] = await Promise.all([fetch(pokemonUrl), fetch(speciesUrl)]);
+                if (!pokemonRes.ok) throw await handleFetchError(pokemonRes, identifier); const pokemonData = await pokemonRes.json();
+                let speciesData = null; if (speciesRes.ok) { speciesData = await speciesRes.json(); } else { console.warn(`No species data for ${identifier}`); }
+                const combinedData = { id: pokemonData.id, name: pokemonData.name, sprite: pokemonData.sprites.other?.home?.front_default || pokemonData.sprites.front_default || 'https://placehold.co/96x96/cccccc/ffffff?text=?', types: pokemonData.types.map(t => t.type.name), fullPokemonData: pokemonData, fullSpeciesData: speciesData };
+                detailedPokemonCache[cacheKey] = combinedData; return combinedData;
+            } catch (error) { console.error(`Error fetching detailed data for ${identifier}:`, error); throw error; }
+        }
+
+        // Fetch TCG data (Detail View)
+        async function fetchTcgData(pokemonName) {
+            // ... (Function remains the same as previous version) ...
+             detailTcgLoader.classList.remove('hidden'); detailTcgErrorDiv.classList.add('hidden'); detailTcgCardsContainer.innerHTML = ''; currentTcgCards = [];
+             if (TCG_API_KEY === 'YOUR_API_KEY' || !TCG_API_KEY) { showDetailTcgError("TCG API Key missing or invalid."); detailTcgLoader.classList.add('hidden'); return; }
+             const query = `name:"${pokemonName}"`; const tcgUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(query)}&orderBy=-set.releaseDate,number&pageSize=150`;
+             try { const response = await fetch(tcgUrl, { headers: { 'X-Api-Key': TCG_API_KEY } }); if (!response.ok) throw await handleFetchError(response, `TCG cards for ${pokemonName}`); const tcgData = await response.json(); currentTcgCards = tcgData.data || []; filterAndDisplayTcgData(); detailTcgErrorDiv.classList.add('hidden'); } catch (error) { console.error("Error fetching TCG data:", error); currentTcgCards = []; filterAndDisplayTcgData(); showDetailTcgError(`TCG Fetch Error: ${error.message}`); } finally { detailTcgLoader.classList.add('hidden'); }
+        }
+
+        // Handle fetch errors (Generic)
+        async function handleFetchError(response, resourceName = 'resource') {
+            // ... (Function remains the same as previous version) ...
+             if (response.status === 404) return new Error(`Data for "${resourceName}" not found (404).`); try { const errorData = await response.json(); return new Error(`API Error (${response.status}): ${errorData?.error?.message || response.statusText}`); } catch (e) { return new Error(`API Request Failed (${response.status}): ${response.statusText}`); }
+        }
+
+        // --- Dex Grid Display ---
+
+        async function displayDexGrid(pokemonList) {
+            // ... (Function remains the same as previous version) ...
+             pokedexGrid.innerHTML = ''; if (!pokemonList || pokemonList.length === 0) { pokedexGrid.innerHTML = '<p class="text-center text-[var(--color-text-secondary)] p-4">No Pokémon found for this generation.</p>'; return; }
+             const fragment = document.createDocumentFragment(); const initialDetailPromises = pokemonList.slice(0, 10).map(p => fetchDetailedPokemonData(p.id).catch(e => null)); await Promise.allSettled(initialDetailPromises);
+             pokemonList.forEach(pokemon => { const card = createDexGridCard(pokemon); fragment.appendChild(card); }); pokedexGrid.appendChild(fragment);
+        }
+
+        function createDexGridCard(pokemon) {
+            // ... (Function remains the same, but click listener changes) ...
+             const li = document.createElement('li'); li.className = 'pokedex-grid-card'; li.dataset.pokemonId = pokemon.id; li.dataset.pokemonName = pokemon.name;
+             const cachedData = detailedPokemonCache[String(pokemon.id)] || detailedPokemonCache[pokemon.name]; const name = cachedData?.name ? capitalize(cachedData.name) : capitalize(pokemon.name); const id = cachedData?.id ? String(cachedData.id).padStart(3, '0') : String(pokemon.id).padStart(3, '0'); const image = cachedData?.sprite || 'https://placehold.co/96x96/cccccc/ffffff?text=?'; const types = cachedData?.types || [];
+             const primaryType = types.length > 0 ? types[0] : 'normal'; const bgColor = `var(--type-${primaryType}-light, var(--color-bg-light-panel))`; li.style.backgroundColor = bgColor;
+             li.innerHTML = `<div class="pokemon-card-header"><span class="pokemon-card-id">#${id}</span></div><div class="pokemon-card-img-container"><img src="${image}" alt="${name}" class="pokemon-card-image" loading="lazy" onerror="this.src='https://placehold.co/96x96/cccccc/ffffff?text=?'"></div><div class="pokemon-card-info"><h3 class="pokemon-card-name">${name}</h3><div class="pokemon-card-types">${types.map(type => `<span class="pokemon-card-type type-${type}">${type}</span>`).join('')}</div></div>`;
+             li.addEventListener('click', () => { console.log(`Card clicked: ${pokemon.name || pokemon.id}`); fetchAndDisplayDetailData(pokemon.name || pokemon.id); /* Fetch and display in lightbox */ }); // Removed showDetailView() call here
+             if (!cachedData) { fetchDetailedPokemonData(pokemon.id).then(data => { if (data) { li.querySelector('.pokemon-card-name').textContent = capitalize(data.name); li.querySelector('.pokemon-card-id').textContent = `#${String(data.id).padStart(3, '0')}`; li.querySelector('.pokemon-card-image').src = data.sprite; const typesHtml = data.types.map(type => `<span class="pokemon-card-type type-${type}">${type}</span>`).join(''); li.querySelector('.pokemon-card-types').innerHTML = typesHtml; const cardPrimaryType = data.types.length > 0 ? data.types[0] : 'normal'; li.style.backgroundColor = `var(--type-${cardPrimaryType}-light, var(--color-bg-light-panel))`; } }).catch(error => console.warn(`Failed to update card for ${pokemon.name}:`, error)); }
+             return li;
+        }
+
+
+        // --- Detail View Display & Logic ---
+
+        // Fetches and displays data specifically for the Detail View Lightbox
+        async function fetchAndDisplayDetailData(identifier) {
+            openDetailLightbox(); // Show the lightbox shell first
+            detailLoader.classList.remove('hidden');
+            detailPokemonInfoDiv.classList.add('hidden'); // Hide content area while loading
+            detailErrorMessageDiv.classList.add('hidden');
+            resetDetailUIState(); // Reset content within the lightbox
+
+            try {
+                const data = await fetchDetailedPokemonData(identifier);
+                if (!data || !data.fullPokemonData) throw new Error(`Could not retrieve full data for ${identifier}`);
+                currentPokemonData = data.fullPokemonData; currentSpeciesData = data.fullSpeciesData;
+                processAndDisplayDetailData(); // Populate the lightbox content
+                fetchTcgData(currentPokemonData.name); // Fetch TCG cards for lightbox
+            } catch (error) {
+                console.error("Error fetching detail data:", error);
+                showDetailError(error.message); // Show error within the lightbox
+            } finally {
+                detailLoader.classList.add('hidden');
+            }
+        }
+
+        // Process and display data IN THE LIGHTBOX
+        function processAndDisplayDetailData() {
+            if (!currentPokemonData) return;
+            isShiny = false; detailShinyToggleButton.classList.remove('active');
+            currentStats = currentPokemonData.stats.filter(si => statNameMapping[si.stat.name]).map(si => ({ name: si.stat.name, displayName: statNameMapping[si.stat.name], value: si.base_stat }));
+            currentStatSort = 'default';
+            currentMoves = currentPokemonData.moves.flatMap(moveInfo => moveInfo.version_group_details.map(detail => ({ name: moveInfo.move.name.replace('-', ' '), level: detail.move_learn_method.name === 'level-up' ? detail.level_learned_at : null }))).filter(move => move.level !== null && move.level > 0).sort((a, b) => a.level - b.level || a.name.localeCompare(b.name)).filter((move, index, self) => index === self.findIndex((m) => (m.name === move.name && m.level === move.level))).slice(0, MAX_MOVES_DISPLAY);
+            currentFlavorTextEntries = []; if (currentSpeciesData?.flavor_text_entries) { const seenVersions = new Set(); currentFlavorTextEntries = currentSpeciesData.flavor_text_entries.filter(entry => entry.language.name === 'en').map(entry => ({ version: formatVersionName(entry.version.name), text: cleanFlavorText(entry.flavor_text) })).filter(entry => { if (!seenVersions.has(entry.version)) { seenVersions.add(entry.version); return true; } return false; }).sort((a, b) => a.version.localeCompare(b.version)); }
+
+            updateDetailVisualSection(); // Update right panel (visuals)
+            updateDetailGameInfoTab(); // Update left panel content
+
+            detailPokemonInfoDiv.classList.remove('hidden'); // Show the content grid inside lightbox
+            detailErrorMessageDiv.classList.add('hidden');
+            // Ensure correct tabs are active
+            switchTab(detailMainTabsContainer.querySelector('.tab-button.active') || detailMainTabButtons[0]);
+            switchSubTab(detailGameInfoTabsContainer.querySelector('.sub-tab-button.active') || detailSubTabButtons[0]);
+        }
+
+        // Update Detail View Visual Section (Right Panel) - WITH GRADIENT LOGIC
+        function updateDetailVisualSection() {
+            if (!currentPokemonData) return;
+            const types = currentPokemonData.types;
+            let color1 = 'var(--color-secondary)'; // Default fallback
+            let color2 = 'var(--color-primary)'; // Default fallback
+
+            if (types.length === 1) {
+                const typeName = types[0].type.name;
+                color1 = `var(--type-${typeName}, var(--color-secondary))`; // Dark color
+                color2 = `var(--type-${typeName}-light, var(--color-primary))`; // Light color
+            } else if (types.length > 1) {
+                const typeName1 = types[0].type.name;
+                const typeName2 = types[1].type.name;
+                color1 = `var(--type-${typeName1}, var(--color-secondary))`; // First type dark
+                color2 = `var(--type-${typeName2}, var(--color-primary))`; // Second type dark (or use light if preferred)
+            }
+
+            // Set dynamic CSS variables for the gradient
+            document.documentElement.style.setProperty('--gradient-color-1', color1);
+            document.documentElement.style.setProperty('--gradient-color-2', color2);
+            // Also set the main dynamic colors used by tabs/buttons
+            document.documentElement.style.setProperty('--dynamic-type-color', color1); // Use first type color for main theme elements
+            document.documentElement.style.setProperty('--dynamic-type-color-light', color2); // Use second type/light color for accents
+
+            // Apply gradient to the visual section background (CSS will use the variables)
+            // The inline style is removed as CSS now handles the gradient using variables
+
+            updateActiveTabColor(); updateActiveSubTabColor(); updateStatSortButtons();
+            updatePokemonImage();
+
+            // Update Type Badges
+            detailPokemonTypesDiv.innerHTML = '';
+            types.forEach(typeInfo => {
+                const typeName = typeInfo.type.name;
+                const typeColor = `var(--type-${typeName}, var(--color-text-secondary))`;
+                const typeBadge = document.createElement('span');
+                typeBadge.className = 'type-badge'; typeBadge.textContent = typeName; typeBadge.style.backgroundColor = typeColor;
+                detailPokemonTypesDiv.appendChild(typeBadge);
+            });
+        }
+
+        // Update Detail View Game Info Tab (Left Panel)
+        function updateDetailGameInfoTab() { /* ... (same as before) ... */
+             if (!currentPokemonData) return; detailPokemonNameDisplay.textContent = currentPokemonData.name; detailPokemonIdSpan.textContent = `#${currentPokemonData.id.toString().padStart(3, '0')}`; detailPokemonHeightP.textContent = `${currentPokemonData.height / 10} m`; detailPokemonWeightP.textContent = `${currentPokemonData.weight / 10} kg`; populateVersionSelector(); updateDescription(); renderActiveSubTabContent();
+        }
+
+        // --- Detail View Sub-Functions (Populate, Render, Update) ---
+        // These functions remain the same, targeting detail view elements
+        function populateVersionSelector() { /* ... (same as before) ... */
+             detailGameVersionSelect.innerHTML = ''; if (currentFlavorTextEntries.length > 0) { currentFlavorTextEntries.forEach((entry, index) => { const option = document.createElement('option'); option.value = index; option.textContent = entry.version; detailGameVersionSelect.appendChild(option); }); detailGameVersionSelect.disabled = false; } else { const option = document.createElement('option'); option.textContent = 'No entries'; detailGameVersionSelect.appendChild(option); detailGameVersionSelect.disabled = true; }
+        }
+        function updateDescription() { /* ... (same as before) ... */
+             const selectedIndex = detailGameVersionSelect.value; if (selectedIndex !== null && currentFlavorTextEntries[selectedIndex]) { detailPokemonDescriptionP.textContent = currentFlavorTextEntries[selectedIndex].text; } else if (currentFlavorTextEntries.length > 0) { detailPokemonDescriptionP.textContent = currentFlavorTextEntries[0].text; detailGameVersionSelect.value = 0; } else { detailPokemonDescriptionP.textContent = 'No description available.'; }
+        }
+        function renderStats() { /* ... (same as before) ... */
+             detailStatsContainer.innerHTML = ''; let statsToRender = [...currentStats]; switch (currentStatSort) { case 'name': statsToRender.sort((a, b) => a.displayName.localeCompare(b.displayName)); break; case 'asc': statsToRender.sort((a, b) => a.value - b.value); break; case 'desc': statsToRender.sort((a, b) => b.value - a.value); break; case 'default': statsToRender.sort((a, b) => defaultStatOrder.indexOf(a.name) - defaultStatOrder.indexOf(b.name)); break; } const statColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color').trim() || 'var(--color-accent)'; statsToRender.forEach(stat => { const statMax = 255; const statPercentage = Math.max(1, (stat.value / statMax) * 100); const statElement = document.createElement('div'); statElement.className = 'flex items-center w-full'; statElement.innerHTML = `<span class="text-xs font-medium text-[var(--color-text-secondary)] w-1/4">${stat.displayName}</span><span class="text-sm font-bold text-[var(--color-text-primary)] w-[50px] text-right mr-2">${stat.value}</span><div class="stat-bar-bg flex-grow h-2.5 rounded-full"><div class="stat-bar h-2.5 rounded-full" style="width: 0%; background-color: ${statColor};"></div></div>`; detailStatsContainer.appendChild(statElement); setTimeout(() => { const bar = statElement.querySelector('.stat-bar'); if(bar) bar.style.width = `${statPercentage}%`; }, 50); });
+        }
+        function renderAbilities() { /* ... (same as before) ... */
+              detailAbilitiesList.innerHTML = ''; if (currentPokemonData.abilities.length > 0) { currentPokemonData.abilities.forEach(abilityInfo => { const abilityItem = document.createElement('li'); abilityItem.textContent = abilityInfo.ability.name.replace('-', ' '); if (abilityInfo.is_hidden) abilityItem.innerHTML += ' <span class="italic">(Hidden)</span>'; detailAbilitiesList.appendChild(abilityItem); }); } else { detailAbilitiesList.innerHTML = '<li class="italic text-[var(--color-text-secondary)]">No abilities listed.</li>'; }
+        }
+        function renderMoves() { /* ... (same as before) ... */
+              detailMovesList.innerHTML = ''; if (currentMoves.length > 0) { currentMoves.forEach(move => { const moveItem = document.createElement('li'); moveItem.textContent = `Lv ${move.level}: ${move.name}`; detailMovesList.appendChild(moveItem); }); } else { detailMovesList.innerHTML = '<li class="italic text-[var(--color-text-secondary)]">No level-up moves found.</li>'; }
+        }
+        function renderActiveSubTabContent() { /* ... (same as before) ... */
+              switch(activeSubTab) { case 'stats-content': renderStats(); break; case 'abilities-content': renderAbilities(); break; case 'moves-content': renderMoves(); break; case 'summary-content': default: break; }
+        }
+
+        // --- TCG Display & Filtering (Detail View) ---
+        function filterAndDisplayTcgData() { /* ... (same as before) ... */
+             const searchTerm = detailTcgSearchInput.value.toLowerCase().trim(); if (searchTerm) { filteredTcgCards = currentTcgCards.filter(card => card.name.toLowerCase().includes(searchTerm) || card.attacks?.some(attack => attack.name.toLowerCase().includes(searchTerm) || attack.text?.toLowerCase().includes(searchTerm)) || card.abilities?.some(ability => ability.name.toLowerCase().includes(searchTerm) || ability.text?.toLowerCase().includes(searchTerm))); } else { filteredTcgCards = [...currentTcgCards]; } displayTcgData(filteredTcgCards);
+        }
+        function displayTcgData(cards) { /* ... (same as before) ... */
+             detailTcgCardsContainer.innerHTML = ''; if (!cards || cards.length === 0) { const message = detailTcgSearchInput.value.trim() ? 'No cards match your filter.' : 'No TCG cards found for this Pokémon.'; detailTcgCardsContainer.innerHTML = `<p class="text-center text-[var(--color-text-secondary)] italic p-4">${message}</p>`; return; } const groupedBySet = cards.reduce((acc, card) => { const setName = card.set?.name || 'Unknown Set'; if (!acc[setName]) acc[setName] = { details: card.set, cards: [] }; acc[setName].cards.push(card); return acc; }, {}); const sortedSetNames = Object.keys(groupedBySet).sort((a, b) => { const dateA = groupedBySet[a].details?.releaseDate; const dateB = groupedBySet[b].details?.releaseDate; if (dateA && dateB) return new Date(dateB) - new Date(dateA); return a.localeCompare(b); }); sortedSetNames.forEach(setName => { const setGroup = groupedBySet[setName]; const setGroupElement = document.createElement('div'); setGroupElement.className = 'tcg-set-group'; const setHeader = document.createElement('div'); setHeader.className = 'tcg-set-header'; setHeader.innerHTML = `<span>${setName} (${setGroup.details?.series || 'N/A'})</span><i class="fas fa-chevron-down"></i>`; setHeader.addEventListener('click', () => toggleSetCollapse(setHeader)); const setContent = document.createElement('div'); setContent.className = 'tcg-set-content'; setGroup.cards.forEach(card => { const cardElement = createTcgCardElement(card); setContent.appendChild(cardElement); }); setGroupElement.appendChild(setHeader); setGroupElement.appendChild(setContent); detailTcgCardsContainer.appendChild(setGroupElement); });
+        }
+        function createTcgCardElement(card) { /* ... (same as before) ... */
+              const cardElement = document.createElement('div'); cardElement.className = 'tcg-card'; cardElement.dataset.cardId = card.id; cardElement.addEventListener('click', () => openTcgLightbox(card.id)); const imageElement = document.createElement('img'); imageElement.src = card.images?.small || 'https://placehold.co/100x140/cccccc/ffffff?text=No+Img'; imageElement.alt = `Image of ${card.name} TCG card`; imageElement.className = 'tcg-card-image'; imageElement.loading = 'lazy'; imageElement.onerror = () => { imageElement.src = 'https://placehold.co/100x140/cccccc/ffffff?text=No+Img'; }; const detailsElement = document.createElement('div'); detailsElement.className = 'tcg-card-details'; detailsElement.innerHTML = `<h5>${card.name} <span class="text-xs font-normal text-[var(--color-text-secondary)]">(${card.id})</span></h5>`; cardElement.appendChild(imageElement); cardElement.appendChild(detailsElement); return cardElement;
+        }
+        function toggleSetCollapse(headerElement) { /* ... (same as before) ... */
+             const contentElement = headerElement.nextElementSibling; const iconElement = headerElement.querySelector('i'); const isCollapsed = headerElement.classList.toggle('collapsed'); contentElement.classList.toggle('hidden', isCollapsed); iconElement.classList.toggle('fa-chevron-down', !isCollapsed); iconElement.classList.toggle('fa-chevron-right', isCollapsed);
+        }
+
+        // --- TCG Lightbox Functions ---
+        function openTcgLightbox(cardId) { /* ... (same as before) ... */
+              const card = currentTcgCards.find(c => c.id === cardId); if (!card) return; lightboxCardName.textContent = card.name; lightboxCardImage.src = card.images?.large || card.images?.small || 'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img'; lightboxCardImage.alt = `Large image of ${card.name}`; lightboxCardImage.onerror = () => { lightboxCardImage.src = 'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img'; }
+              let detailsHtml = `<p><strong>Set:</strong> ${card.set?.name || 'N/A'} (${card.set?.series || 'N/A'})</p>`; if (card.hp) detailsHtml += `<p><strong>HP:</strong> ${card.hp}</p>`; if (card.types?.length) detailsHtml += `<p><strong>Type(s):</strong> ${card.types.join(', ')}</p>`; if (card.rarity) detailsHtml += `<p><strong>Rarity:</strong> ${card.rarity}</p>`;
+              if (card.attacks?.length) { detailsHtml += `<h4 class="lightbox-detail-title">Attacks</h4>`; card.attacks.forEach(attack => { let costHtml = attack.cost?.map(type => `<span class="tcg-cost-icon tcg-type-${type}" title="${type}"></span>`).join('') || '(No Cost)'; detailsHtml += `<div class="lightbox-attack"><p><strong>${attack.name}</strong> ${costHtml} ${attack.damage ? `<span class="float-right font-bold">${attack.damage}</span>` : ''}</p>${attack.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${attack.text}</p>` : ''}</div>`; }); }
+              if (card.abilities?.length) { detailsHtml += `<h4 class="lightbox-detail-title">Abilities</h4>`; card.abilities.forEach(ability => { detailsHtml += `<div class="lightbox-ability"><p><strong>${ability.name}</strong> (${ability.type})</p>${ability.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${ability.text}</p>` : ''}</div>`; }); }
+              detailsHtml += `<h4 class="lightbox-detail-title">Combat Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`; detailsHtml += `<div><strong>Weakness:</strong> ${card.weaknesses ? card.weaknesses.map(w => `${w.type} ${w.value}`).join(', ') : 'None'}</div>`; detailsHtml += `<div><strong>Resistance:</strong> ${card.resistances ? card.resistances.map(r => `${r.type} ${r.value}`).join(', ') : 'None'}</div>`; detailsHtml += `<div><strong>Retreat:</strong> ${card.retreatCost ? card.retreatCost.join(', ') : '0'}</div></div>`;
+              lightboxCardDetails.innerHTML = detailsHtml; tcgLightbox.classList.add('visible'); document.body.style.overflow = 'hidden';
+        }
+        function closeTcgLightbox() { /* ... (same as before) ... */
+              tcgLightbox.classList.remove('visible'); document.body.style.overflow = ''; lightboxCardImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"; lightboxCardDetails.innerHTML = '<p>Loading details...</p>';
+        }
+
+        // --- UI Update & Interaction (Detail View) ---
+        function updatePokemonImage() { /* ... (same as before) ... */
+             if (!currentPokemonData) return; const defaultUrl = currentPokemonData.sprites.other?.['official-artwork']?.front_default || currentPokemonData.sprites.front_default; const shinyUrl = currentPokemonData.sprites.other?.['official-artwork']?.front_shiny || currentPokemonData.sprites.front_shiny; const placeholderUrl = 'https://placehold.co/256x256/cccccc/ffffff?text=?'; let targetUrl = isShiny ? shinyUrl : defaultUrl; if (isShiny && !shinyUrl) targetUrl = defaultUrl; if (!targetUrl) targetUrl = placeholderUrl; detailPokemonImage.src = targetUrl; detailPokemonImage.alt = `Image of ${isShiny ? 'shiny ' : ''}${currentPokemonData.name}`; detailPokemonImage.onerror = () => { detailPokemonImage.src = placeholderUrl; detailPokemonImage.alt = `${currentPokemonData.name} image not found`; };
+        }
+        function toggleShiny() { /* ... (same as before) ... */
+             if (!currentPokemonData) return; isShiny = !isShiny; detailShinyToggleButton.classList.toggle('active', isShiny); updatePokemonImage();
+        }
+        function updateStatSortButtons() { /* ... (same as before) ... */
+             const activeColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color').trim() || 'var(--color-secondary)'; detailStatSortButtonsContainer.querySelectorAll('.sort-button').forEach(button => { const isActive = button.dataset.sort === currentStatSort; button.classList.toggle('active', isActive); button.style.backgroundColor = isActive ? activeColor : ''; button.style.borderColor = isActive ? 'transparent' : ''; button.style.color = isActive ? 'white' : ''; });
+        }
+        function resetDetailUIState() { /* Renamed from resetUIState */
+             detailGameVersionSelect.innerHTML = '<option>Loading...</option>'; detailGameVersionSelect.disabled = true; detailPokemonDescriptionP.textContent = 'Loading...'; detailTcgSearchInput.value = ''; detailTcgCardsContainer.innerHTML = ''; detailTcgLoader.classList.add('hidden'); detailTcgErrorDiv.classList.add('hidden'); detailStatsContainer.innerHTML = ''; currentStatSort = 'default'; updateStatSortButtons(); detailAbilitiesList.innerHTML = ''; detailMovesList.innerHTML = ''; isShiny = false; detailShinyToggleButton.classList.remove('active'); switchSubTab(detailGameInfoTabsContainer.querySelector('[data-subtab="summary-content"]'));
+        }
+        function showDetailError(message) { /* Renamed from showError */
+              detailErrorText.textContent = message; detailErrorMessageDiv.classList.remove('hidden'); detailPokemonInfoDiv.classList.add('hidden'); detailLoader.classList.add('hidden');
+        }
+         function showDexGridError(message) { /* Targets dex grid */
+              pokedexGrid.innerHTML = `<p class="text-center text-[var(--color-error)] p-4">${message}</p>`;
+              dexGridLoader.classList.add('hidden');
+         }
+        function switchTab(clickedTab) { /* Targets detailMainTabsContainer */
+             if (!clickedTab) return; const targetTabId = clickedTab.dataset.tab; detailMainTabButtons.forEach(button => button.classList.remove('active')); clickedTab.classList.add('active'); updateActiveTabColor(); detailMainTabContents.forEach(content => content.classList.toggle('active', content.id === targetTabId));
+        }
+        function switchSubTab(clickedSubTab) { /* Targets detailGameInfoTabsContainer */
+              if (!clickedSubTab) return; const targetSubTabId = clickedSubTab.dataset.subtab; detailSubTabButtons.forEach(button => button.classList.remove('active')); clickedSubTab.classList.add('active'); activeSubTab = targetSubTabId; updateActiveSubTabColor(); detailSubTabContents.forEach(content => content.classList.toggle('active', content.id === targetSubTabId)); renderActiveSubTabContent();
+        }
+        function updateActiveTabColor() { /* Targets detailMainTabsContainer */
+              const activeTab = detailMainTabsContainer.querySelector('.tab-button.active'); const darkColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color').trim() || 'var(--color-secondary)'; const lightColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color-light').trim() || 'var(--color-primary)'; if (activeTab) { activeTab.style.backgroundColor = darkColor; activeTab.style.borderColor = lightColor; activeTab.style.color = 'white'; } detailMainTabButtons.forEach(button => { if (!button.classList.contains('active')) { button.style.backgroundColor = ''; button.style.borderColor = 'transparent'; button.style.color = ''; } });
+        }
+        function updateActiveSubTabColor() { /* Targets detailGameInfoTabsContainer */
+              const activeSubTab = detailGameInfoTabsContainer.querySelector('.sub-tab-button.active'); const darkColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color').trim() || 'var(--color-secondary)'; if (activeSubTab) { activeSubTab.style.backgroundColor = darkColor; activeSubTab.style.borderColor = 'transparent'; activeSubTab.style.color = 'white'; } detailSubTabButtons.forEach(button => { if (!button.classList.contains('active')) { button.style.backgroundColor = ''; button.style.borderColor = ''; button.style.color = ''; } });
+        }
+
+        // --- Event Listeners ---
+        // Main Search (opens Detail Lightbox)
+        mainSearchButton.addEventListener('click', () => {
+            const searchTerm = mainSearchInput.value; if (searchTerm.trim()) fetchAndDisplayDetailData(searchTerm);
+        });
+        mainSearchInput.addEventListener('keypress', (event) => {
+             if (event.key === 'Enter') { const searchTerm = mainSearchInput.value; if (searchTerm.trim()) fetchAndDisplayDetailData(searchTerm); }
+        });
+
+        // Detail Lightbox Close Button
+        detailCloseButton.addEventListener('click', closeDetailLightbox);
+        detailViewLightbox.addEventListener('click', (event) => { // Close on overlay click
+             if (event.target === detailViewLightbox) closeDetailLightbox();
+        });
+
+
+        // Generation Tabs
+        generationTabsContainer.addEventListener('click', async (event) => {
+            const button = event.target.closest('.gen-tab-button');
+            if (button && !button.classList.contains('active')) {
+                generationTabsContainer.querySelectorAll('.gen-tab-button').forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                currentGeneration = parseInt(button.dataset.generation, 10);
+                dexGridLoader.classList.remove('hidden'); pokedexGrid.innerHTML = ''; // Clear & show loader
+                const pokemonList = await fetchGenerationList(currentGeneration);
+                displayDexGrid(pokemonList);
+                dexGridLoader.classList.add('hidden');
+            }
+        });
+
+        // Detail View Listeners (Targeting elements within the lightbox)
+        detailMainTabsContainer.addEventListener('click', (event) => { if (event.target.classList.contains('tab-button')) switchTab(event.target); });
+        detailGameInfoTabsContainer.addEventListener('click', (event) => { if (event.target.classList.contains('sub-tab-button')) switchSubTab(event.target); });
+        detailShinyToggleButton.addEventListener('click', toggleShiny);
+        detailGameVersionSelect.addEventListener('change', updateDescription);
+        detailStatSortButtonsContainer.addEventListener('click', (event) => { if (event.target.classList.contains('sort-button')) { const sortType = event.target.dataset.sort; currentStatSort = (currentStatSort === sortType && sortType !== 'default') ? 'default' : sortType; renderStats(); updateStatSortButtons(); } });
+        detailTcgSearchButton.addEventListener('click', filterAndDisplayTcgData);
+        detailTcgSearchInput.addEventListener('input', filterAndDisplayTcgData);
+        detailTcgSearchInput.addEventListener('keypress', (event) => { if (event.key === 'Enter') event.preventDefault(); });
+        lightboxCloseButton.addEventListener('click', closeTcgLightbox); // TCG Lightbox close
+        tcgLightbox.addEventListener('click', (event) => { if (event.target === tcgLightbox) closeTcgLightbox(); }); // TCG overlay click
+
+        // --- Initial Load ---
+        async function initializeApp() {
+            console.log("Initializing Pokedex App...");
+            dexGridLoader.classList.remove('hidden'); // Show initial grid loader
+            try {
+                const initialList = await fetchGenerationList(currentGeneration); // Fetch Gen 1
+                displayDexGrid(initialList); // Display Gen 1
+            } catch (error) {
+                // Error handled within fetchGenerationList which calls showDexGridError
+            } finally {
+                dexGridLoader.classList.add('hidden'); // Hide loader
+            }
+            console.log("Pokedex App Initialized.");
+        }
+
+        initializeApp(); // Start the app
+
+    </script>
+
+</body>
+</html>
