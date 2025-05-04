@@ -1,16 +1,17 @@
 /**
  * @file        dex/js/app.js
  * @description Main application entry point and module initializer.
- * @version     3.1.0
- * @date        2025-05-05
+ * @version     3.2.0
+ * @date        2025-05-06
  * @author      Your Name/AI Assistant
  * @copyright   (c) 2025 Your Project Name
  * @license     MIT (or your chosen license)
  *
- * @dependencies utils.js, api.js, lightbox.js, dexGrid.js, detailView.js, tcgModule.js, generator.js
+ * @dependencies utils.js, constants.js, api.js, lightbox.js, dexGrid.js, detailView.js, tcgModule.js, generator.js
  * @dependents   index.html
  *
  * @changelog
+ * v3.2.0 (2025-05-06): Improved dependency checks, added safe module loading, enhanced error recovery.
  * v3.1.0 (2025-05-05): Added dependency checks in init, refined error handling.
  * v3.0.0 (2025-05-04): Corrected initialization order, improved loading flow.
  * v1.0.0 (Initial): Basic app setup.
@@ -21,7 +22,7 @@ window.DexApp.App = {};
 
 // --- Main Initialization ---
 window.DexApp.App.initialize = function() {
-    console.log("Initializing Pokedex App (V3.1)...");
+    console.log("Initializing Pokedex App (V3.2)...");
     try {
         this.setupSearch(); // Setup basic search listeners
         this.initializeModules() // Initialize all modules in order
@@ -55,15 +56,34 @@ window.DexApp.App.initializeModules = async function() {
     return new Promise((resolve, reject) => {
         try {
             // --- Dependency Checks ---
-            const requiredModules = ['Utils', 'API', 'Lightbox', 'DexGrid', 'DetailView', 'TCG', 'Generator'];
+            // Check for Constants first since others depend on it
+            if (!window.DexApp.Constants) {
+                throw new Error("Constants module is missing! Check script loading order.");
+            }
+
+            // Check for other required modules
+            if (!window.DexApp.Utils) {
+                throw new Error("Utils module is missing! Check script loading order.");
+            }
+
+            // With required modules present, do more fine-grained checks
+            const requiredModules = ['Utils', 'Constants', 'API', 'Lightbox', 'DexGrid', 'DetailView', 'TCG', 'Generator'];
+            
             for (const mod of requiredModules) {
                 const moduleObject = window.DexApp[mod];
-                const hasInitialize = typeof moduleObject?.initialize === 'function';
-
-                if (!moduleObject && (mod !== 'Utils' && mod !== 'API')) { // Utils/API might not have init
-                     throw new Error(`${mod} module is missing!`);
+                if (!moduleObject) {
+                    // Utils/API/Constants might not have initialize methods, so only warn if they're missing entirely
+                    if (['Utils', 'API', 'Constants'].includes(mod)) {
+                        console.warn(`${mod} module is missing!`);
+                    } else {
+                        throw new Error(`${mod} module is missing!`);
+                    }
                 }
-                if (!hasInitialize && (mod !== 'Utils' && mod !== 'API')) {
+                
+                const hasInitialize = typeof moduleObject?.initialize === 'function';
+                
+                // Check for initialize method only for modules that should have one
+                if (!hasInitialize && !['Utils', 'API', 'Constants'].includes(mod)) {
                     console.warn(`${mod} module loaded but missing initialize method.`);
                     // Make initialization mandatory for core UI modules
                     if (['Lightbox', 'DexGrid', 'DetailView', 'Generator'].includes(mod)) {
@@ -71,33 +91,56 @@ window.DexApp.App.initializeModules = async function() {
                     }
                 }
             }
+            
             console.log("All required modules appear to be loaded.");
 
+            // --- TCG Required Constants Check ---
+            // Check if specific constants required by the TCG module exist
+            if (!window.DexApp.Constants.TCG_TYPES || !window.DexApp.Constants.TCG_RARITIES) {
+                console.warn("TCG_TYPES or TCG_RARITIES are missing in Constants! TCG functionality may not work correctly.");
+                
+                // Provide fallback values if needed
+                window.DexApp.Constants.TCG_TYPES = window.DexApp.Constants.TCG_TYPES || [
+                    "Colorless", "Darkness", "Dragon", "Fairy", "Fighting", 
+                    "Fire", "Grass", "Lightning", "Metal", "Psychic", "Water"
+                ];
+                
+                window.DexApp.Constants.TCG_RARITIES = window.DexApp.Constants.TCG_RARITIES || [
+                    "Common", "Uncommon", "Rare", "Rare Holo", "Rare Ultra", 
+                    "Rare Secret", "Amazing Rare", "Radiant Rare"
+                ];
+                
+                console.log("Added fallback TCG constants.");
+            }
+
             // --- Initialization Order ---
-            // 1. Core/Utils (No explicit init needed)
-            // 2. Lightbox (Needed by DetailView, Generator)
+            // 1. Lightbox (Needed by DetailView, Generator)
             console.log("Initializing Lightbox...");
-            window.DexApp.Lightbox.initialize();
+            if (this.safeInitialize('Lightbox')) {
+                // 2. UI Modules (continuing only if Lightbox succeeded)
+                console.log("Initializing DexGrid...");
+                this.safeInitialize('DexGrid');
 
-            // 3. UI Modules
-            console.log("Initializing DexGrid...");
-            window.DexApp.DexGrid.initialize();
+                console.log("Initializing DetailView...");
+                this.safeInitialize('DetailView');
 
-            console.log("Initializing DetailView...");
-            window.DexApp.DetailView.initialize();
+                console.log("Initializing TCG...");
+                this.safeInitialize('TCG');
 
-            console.log("Initializing TCG...");
-            window.DexApp.TCG.initialize();
+                console.log("Initializing Generator...");
+                this.safeInitialize('Generator');
 
-            console.log("Initializing Generator...");
-            window.DexApp.Generator.initialize();
+                // 3. Background Tasks (Can run after core UI is ready)
+                console.log("Starting background tasks (e.g., fetch TCG sets)...");
+                if (window.DexApp.API && typeof window.DexApp.API.fetchTcgSets === 'function') {
+                    window.DexApp.API.fetchTcgSets().catch(e => console.warn('Background TCG Set fetch failed:', e));
+                }
 
-            // 4. Background Tasks (Can run after core UI is ready)
-            console.log("Starting background tasks (e.g., fetch TCG sets)...");
-            window.DexApp.API.fetchTcgSets().catch(e => console.warn('Background TCG Set fetch failed:', e));
-
-            console.log("Module initialization sequence complete.");
-            resolve(); // Signal success
+                console.log("Module initialization sequence complete.");
+                resolve(); // Signal success even if some non-critical modules failed
+            } else {
+                throw new Error("Lightbox initialization failed - critical dependency");
+            }
 
         } catch (error) {
             console.error("CRITICAL Error during module initialization:", error);
@@ -106,26 +149,47 @@ window.DexApp.App.initializeModules = async function() {
     });
 };
 
+// Safe initialization helper
+window.DexApp.App.safeInitialize = function(moduleName) {
+    try {
+        const module = window.DexApp[moduleName];
+        if (module && typeof module.initialize === 'function') {
+            module.initialize();
+            return true;
+        }
+        return false;
+    } catch (error) {
+        console.error(`Error initializing ${moduleName} module:`, error);
+        return false;
+    }
+};
 
 // --- Initial Grid Loading ---
 window.DexApp.App.loadInitialGrid = async function() {
     const gridContainer = window.DexApp.DexGrid?.elements?.pokedexGrid;
     const dexGridLoader = window.DexApp.DexGrid?.elements?.dexGridLoader;
 
-    if (!gridContainer || !dexGridLoader) {
-        console.error("Grid container or loader element reference missing in DexGrid module.");
+    if (!gridContainer) {
+        console.error("Grid container reference missing in DexGrid module.");
         // Don't throw here, let the app load but show error in place
         this.showInitializationError("UI Error: Grid components missing.");
         return; // Stop this specific function
     }
 
     console.log("Loading initial grid data...");
-    window.DexApp.Utils.UI.showLoader(dexGridLoader);
+    if (dexGridLoader) {
+        window.DexApp.Utils.UI.showLoader(dexGridLoader);
+    }
+    
     gridContainer.innerHTML = ''; // Clear previous content/errors
 
     try {
         const currentGeneration = window.DexApp.DexGrid?.state?.currentGeneration || 1;
         const initialList = await window.DexApp.API.fetchGenerationList(currentGeneration);
+
+        if (!initialList || initialList.length === 0) {
+            throw new Error("Failed to fetch Pokémon list or list is empty");
+        }
 
         if (window.DexApp.DexGrid?.displayDexGrid) {
             await window.DexApp.DexGrid.displayDexGrid(initialList);
@@ -135,10 +199,14 @@ window.DexApp.App.loadInitialGrid = async function() {
         }
     } catch (error) {
         console.error("Error loading initial grid data:", error);
-        window.DexApp.Utils.UI.showError(gridContainer, `Failed to load initial Pokémon list. ${error.message}`);
+        if (gridContainer) {
+            window.DexApp.Utils.UI.showError(gridContainer, `Failed to load initial Pokémon list. ${error.message}`);
+        }
         // Allow the app to continue loading, showing the error in place
     } finally {
-        window.DexApp.Utils.UI.hideLoader(dexGridLoader);
+        if (dexGridLoader) {
+            window.DexApp.Utils.UI.hideLoader(dexGridLoader);
+        }
     }
 };
 
@@ -153,17 +221,25 @@ window.DexApp.App.setupSearch = function() {
             if (searchTerm) {
                 if (window.DexApp.DetailView?.fetchAndDisplayDetailData) {
                     console.log(`Performing search for: ${searchTerm}`);
-                    window.DexApp.DexGrid?.stopBreathingEffect(); // Stop effect on search
+                    if (window.DexApp.DexGrid?.stopBreathingEffect) {
+                        window.DexApp.DexGrid.stopBreathingEffect(); // Stop effect on search
+                    }
                     // Open detail view without specific context (clears nav)
                     window.DexApp.DetailView.fetchAndDisplayDetailData(searchTerm, null);
                 } else { console.error("DetailView function not found!"); }
             }
         };
+        
         mainSearchButton.addEventListener('click', performSearch);
         mainSearchInput.addEventListener('keypress', (event) => {
-            if (event.key === 'Enter') { event.preventDefault(); performSearch(); }
+            if (event.key === 'Enter') { 
+                event.preventDefault(); 
+                performSearch(); 
+            }
         });
-    } else { console.warn("Main search elements not found."); }
+    } else { 
+        console.warn("Main search elements not found."); 
+    }
 };
 
 // --- UI Helpers ---
@@ -177,11 +253,20 @@ window.DexApp.App.showApp = function() {
         initialLoadingOverlay.addEventListener('transitionend', () => {
              if (initialLoadingOverlay.parentNode) initialLoadingOverlay.remove();
         }, { once: true });
-    } else { console.warn("Initial loading overlay not found."); }
+        
+        // Fallback timeout in case transition events don't fire
+        setTimeout(() => {
+            if (initialLoadingOverlay.parentNode) initialLoadingOverlay.remove();
+        }, 1000);
+    } else { 
+        console.warn("Initial loading overlay not found."); 
+    }
 
     if (appContainer) {
         appContainer.classList.remove('hidden'); // Show main content
-    } else { console.error("App container not found!"); }
+    } else { 
+        console.error("App container not found!"); 
+    }
 };
 
 window.DexApp.App.showInitializationError = function(message = "An error occurred.") {
@@ -190,8 +275,17 @@ window.DexApp.App.showInitializationError = function(message = "An error occurre
 
     const overlay = document.getElementById('initial-loading-overlay');
     const appContainer = document.getElementById('app-container');
-    // Use a more specific class for the error message display
-    const errorDisplayHtml = `<div class="pokedex-init-error">${errorMsg} Please refresh.</div>`;
+    
+    // Create error message with button to reload the page
+    const errorDisplayHtml = `
+        <div class="pokedex-init-error" style="text-align: center; color: #f87171; padding: 2rem; max-width: 400px; margin: 0 auto;">
+            <h3 style="margin-bottom: 1rem;">${errorMsg}</h3>
+            <p style="margin-bottom: 1.5rem;">This might be a temporary issue with loading resources or a browser cache problem.</p>
+            <button onclick="location.reload(true)" style="padding: 0.5rem 1rem; background-color: #f87171; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+                Reload Page
+            </button>
+        </div>
+    `;
 
     // Prioritize showing error in the loading overlay if it's still visible
     if (overlay && !overlay.classList.contains('loaded')) {
@@ -204,9 +298,17 @@ window.DexApp.App.showInitializationError = function(message = "An error occurre
             appContainer.classList.remove('hidden');
          }
     } else {
-        // Absolute fallback: Alert or direct body modification
-        alert(errorMsg + " Please refresh.");
-        // document.body.innerHTML = errorDisplayHtml; // Avoid replacing entire body if possible
+        // Absolute fallback: Create a new error div in the body
+        const errorDiv = document.createElement('div');
+        errorDiv.style.position = 'fixed';
+        errorDiv.style.inset = '0';
+        errorDiv.style.display = 'flex';
+        errorDiv.style.alignItems = 'center';
+        errorDiv.style.justifyContent = 'center';
+        errorDiv.style.backgroundColor = 'var(--color-bg-dark, #0f172a)';
+        errorDiv.style.zIndex = '10000';
+        errorDiv.innerHTML = errorDisplayHtml;
+        document.body.appendChild(errorDiv);
     }
 };
 
@@ -219,7 +321,18 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             console.error("CRITICAL: DexApp.App.initialize not defined!");
             // Display critical error directly
-             const errorDiv = `<div style="position: fixed; inset: 0; background: #0f172a; color: #f87171; display: flex; align-items: center; justify-content: center; padding: 2rem; font-size: 1.2rem; z-index: 10000;">Critical Error: Application failed to load. Check console (F12) and script loading order.</div>`;
+             const errorDiv = `<div style="position: fixed; inset: 0; background: #0f172a; color: #f87171; display: flex; align-items: center; justify-content: center; padding: 2rem; font-size: 1.2rem; z-index: 10000;">
+                Critical Error: Application failed to load. 
+                <ul style="margin-left: 1.5rem; margin-top: 1rem;">
+                    <li>Check console (F12) for details</li>
+                    <li>Verify script loading order</li>
+                    <li>Clear browser cache and reload</li>
+                </ul>
+                <button onclick="location.reload(true)" style="position: absolute; bottom: 2rem; padding: 0.5rem 1rem; background-color: #f87171; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+                    Reload Page
+                </button>
+             </div>`;
+             
              const overlay = document.getElementById('initial-loading-overlay');
              if (overlay) overlay.innerHTML = errorDiv;
              else if (document.body) document.body.innerHTML = errorDiv;
@@ -227,17 +340,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 10); // Small delay
 });
 
-// --- Global Error Handlers (Optional but Recommended) ---
+// --- Global Error Handlers ---
 window.addEventListener('error', function(event) {
     console.error('Unhandled Global Error:', event.error, 'at', event.filename, ':', event.lineno);
-    // Consider a subtle UI indicator instead of calling showInitializationError here
-    // Example: document.body.classList.add('has-script-error');
-});
-window.addEventListener('unhandledrejection', function(event) {
-  console.error('Unhandled Promise Rejection:', event.reason);
-  // Consider a subtle UI indicator
+    // We avoid showing UI errors for every error, but track them in console
 });
 
-console.log("App script loaded (v3.1.0).");
-// --- End of App Script ---
-// Note: Ensure all modules are loaded before this script in the HTML file.
+window.addEventListener('unhandledrejection', function(event) {
+  console.error('Unhandled Promise Rejection:', event.reason);
+});
+
+console.log("App script loaded (v3.2.0).");

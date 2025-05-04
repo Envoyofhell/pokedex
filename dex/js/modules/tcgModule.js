@@ -30,21 +30,72 @@ window.DexApp.TCG.elements = {
     lightboxCardDetails: document.getElementById('lightbox-card-details')
 };
 
+// --- Fallback Constants (in case the main constants are missing) ---
+window.DexApp.TCG.fallbackConstants = {
+    TCG_TYPES: [
+        "Colorless", "Darkness", "Dragon", "Fairy", "Fighting", 
+        "Fire", "Grass", "Lightning", "Metal", "Psychic", "Water"
+    ],
+    TCG_RARITIES: [
+        "Common", "Uncommon", "Rare", "Rare Holo", "Rare Ultra", 
+        "Rare Secret", "Rare Holo GX", "Rare Holo EX", "Rare Holo V", 
+        "Rare Holo VMAX", "Rare Shining", "Amazing Rare", "Rare Rainbow"
+    ]
+};
+
+// Helper function to safely get constants
+window.DexApp.TCG.getConstant = function(constantName) {
+    // Check if Constants is defined and has the requested constant
+    if (window.DexApp.Constants && window.DexApp.Constants[constantName]) {
+        return window.DexApp.Constants[constantName];
+    }
+    
+    // Fallback to local constants
+    if (this.fallbackConstants[constantName]) {
+        console.warn(`Using fallback for missing constant: ${constantName}`);
+        return this.fallbackConstants[constantName];
+    }
+    
+    // Return empty array as last resort
+    console.error(`Constant not found: ${constantName}`);
+    return [];
+};
+
 // --- Initialize TCG Module ---
 window.DexApp.TCG.initialize = function() {
+    console.log("Initializing TCG module...");
+    // Verify we have the critical DOM elements
+    if (!this.elements.tcgLightbox || !this.elements.detailTcgCardsContainer) {
+        console.error("TCG module initialization failed: Critical DOM elements missing");
+        return;
+    }
+    
+    // Check if Constants exist, warn if not
+    if (!window.DexApp.Constants) {
+        console.warn("Constants module not found! TCG module will use fallback values.");
+    } else if (!window.DexApp.Constants.TCG_TYPES || !window.DexApp.Constants.TCG_RARITIES) {
+        console.warn("TCG constants missing! Using fallback values.");
+    }
+    
     this.setupEventListeners();
     this.populateFilterDropdowns();
+    console.log("TCG module initialized.");
 };
 
 window.DexApp.TCG.setupEventListeners = function() {
     const elements = this.elements;
     
     // TCG Search & Filtering
-    elements.detailTcgSearchButton.addEventListener('click', () => this.filterAndDisplayTcgData());
-    elements.detailTcgSearchInput.addEventListener('input', () => this.filterAndDisplayTcgData());
-    elements.detailTcgSearchInput.addEventListener('keypress', (event) => {
-        if (event.key === 'Enter') event.preventDefault();
-    });
+    if (elements.detailTcgSearchButton) {
+        elements.detailTcgSearchButton.addEventListener('click', () => this.filterAndDisplayTcgData());
+    }
+    
+    if (elements.detailTcgSearchInput) {
+        elements.detailTcgSearchInput.addEventListener('input', () => this.filterAndDisplayTcgData());
+        elements.detailTcgSearchInput.addEventListener('keypress', (event) => {
+            if (event.key === 'Enter') event.preventDefault();
+        });
+    }
     
     // Type filter change
     if (elements.detailTcgTypeFilter) {
@@ -62,18 +113,26 @@ window.DexApp.TCG.setupEventListeners = function() {
     }
     
     // TCG Lightbox Controls
-    elements.lightboxCloseButton.addEventListener('click', () => this.closeTcgLightbox());
-    elements.tcgLightbox.addEventListener('click', (event) => {
-        if (event.target === elements.tcgLightbox) this.closeTcgLightbox();
-    });
+    if (elements.lightboxCloseButton) {
+        elements.lightboxCloseButton.addEventListener('click', () => this.closeTcgLightbox());
+    }
+    
+    if (elements.tcgLightbox) {
+        elements.tcgLightbox.addEventListener('click', (event) => {
+            if (event.target === elements.tcgLightbox) this.closeTcgLightbox();
+        });
+    }
 };
 
 window.DexApp.TCG.populateFilterDropdowns = function() {
-    // Populate TCG Type filter
+    // Populate TCG Type filter - Using getConstant to safely get TCG_TYPES
     if (this.elements.detailTcgTypeFilter) {
         this.elements.detailTcgTypeFilter.innerHTML = '<option value="">All Types</option>';
         
-        window.DexApp.Constants.TCG_TYPES.forEach(type => {
+        // Get types safely with fallback
+        const tcgTypes = this.getConstant('TCG_TYPES');
+        
+        tcgTypes.forEach(type => {
             const option = document.createElement('option');
             option.value = type;
             option.textContent = type;
@@ -81,11 +140,14 @@ window.DexApp.TCG.populateFilterDropdowns = function() {
         });
     }
     
-    // Populate TCG Rarity filter
+    // Populate TCG Rarity filter - Using getConstant to safely get TCG_RARITIES
     if (this.elements.detailTcgRarityFilter) {
         this.elements.detailTcgRarityFilter.innerHTML = '<option value="">All Rarities</option>';
         
-        window.DexApp.Constants.TCG_RARITIES.forEach(rarity => {
+        // Get rarities safely with fallback
+        const tcgRarities = this.getConstant('TCG_RARITIES');
+        
+        tcgRarities.forEach(rarity => {
             const option = document.createElement('option');
             option.value = rarity;
             option.textContent = rarity;
@@ -100,7 +162,18 @@ window.DexApp.TCG.populateFilterDropdowns = function() {
 window.DexApp.TCG.fetchAndDisplayTcgData = async function(pokemonName, options = {}) {
     const elements = this.elements;
     
-    window.DexApp.Utils.UI.showLoader(elements.detailTcgLoader);
+    if (!elements.detailTcgLoader || !elements.detailTcgCardsContainer) {
+        console.error("TCG display elements missing!");
+        return [];
+    }
+    
+    if (window.DexApp.Utils && window.DexApp.Utils.UI) {
+        window.DexApp.Utils.UI.showLoader(elements.detailTcgLoader);
+    } else {
+        // Fallback if Utils not available
+        if (elements.detailTcgLoader) elements.detailTcgLoader.classList.remove('hidden');
+    }
+    
     if (elements.detailTcgErrorDiv) elements.detailTcgErrorDiv.classList.add('hidden');
     if (elements.detailTcgCardsContainer) elements.detailTcgCardsContainer.innerHTML = '';
     
@@ -118,17 +191,35 @@ window.DexApp.TCG.fetchAndDisplayTcgData = async function(pokemonName, options =
     }
     
     try {
+        // Make sure the API module is available
+        if (!window.DexApp.API || typeof window.DexApp.API.fetchTcgData !== 'function') {
+            throw new Error("API module or fetchTcgData function missing");
+        }
+        
         this.state.currentTcgCards = await window.DexApp.API.fetchTcgData(pokemonName, options);
         this.filterAndDisplayTcgData();
     } catch (error) {
         console.error("Error in fetchAndDisplayTcgData:", error);
         this.showDetailTcgError(`Error fetching TCG data: ${error.message}`);
+        return [];
     } finally {
-        window.DexApp.Utils.UI.hideLoader(elements.detailTcgLoader);
+        if (window.DexApp.Utils && window.DexApp.Utils.UI) {
+            window.DexApp.Utils.UI.hideLoader(elements.detailTcgLoader);
+        } else {
+            // Fallback if Utils not available
+            if (elements.detailTcgLoader) elements.detailTcgLoader.classList.add('hidden');
+        }
     }
+    
+    return this.state.currentTcgCards;
 };
 
 window.DexApp.TCG.filterAndDisplayTcgData = function() {
+    if (!this.elements.detailTcgSearchInput || !this.elements.detailTcgCardsContainer) {
+        console.error("TCG filter/display elements missing!");
+        return;
+    }
+    
     const searchTerm = this.elements.detailTcgSearchInput.value.toLowerCase().trim();
     const typeFilter = this.elements.detailTcgTypeFilter ? this.elements.detailTcgTypeFilter.value : '';
     const rarityFilter = this.elements.detailTcgRarityFilter ? this.elements.detailTcgRarityFilter.value : '';
@@ -273,154 +364,202 @@ window.DexApp.TCG.createTcgCardElement = function(card) {
     }
     
     detailsElement.innerHTML = `
-        <div class="tcg-card-header">
-            <h5>${card.name} ${card.hp ? `<span class="tcg-hp">${card.hp} HP</span>` : ''}</h5>
-            <div class="tcg-card-metadata">
-                ${typeIconsHtml}
-                ${rarityBadgeHtml}
-            </div>
+    <div class="tcg-card-header">
+        <h5>${card.name} ${card.hp ? `<span class="tcg-hp">${card.hp} HP</span>` : ''}</h5>
+        <div class="tcg-card-metadata">
+            ${typeIconsHtml}
+            ${rarityBadgeHtml}
         </div>
-        <div class="tcg-card-subtext">
-            <span class="tcg-set-info">${card.set?.name || 'Unknown Set'}</span>
-            <span class="tcg-card-id">${card.number || ''}</span>
+    </div>
+    <div class="tcg-card-subtext">
+        <span class="tcg-set-info">${card.set?.name || 'Unknown Set'}</span>
+        <span class="tcg-card-id">${card.number || ''}</span>
+    </div>
+`;
+
+// Add a preview of attacks/abilities if present
+if (card.attacks && card.attacks.length > 0) {
+    const attacksPreview = document.createElement('div');
+    attacksPreview.className = 'tcg-attacks-preview';
+    attacksPreview.innerHTML = `
+        <div class="tcg-preview-label">Attacks:</div>
+        <div class="tcg-preview-content">
+            ${card.attacks.map(attack => attack.name).join(', ')}
         </div>
     `;
-    
-    // Add a preview of attacks/abilities if present
-    if (card.attacks && card.attacks.length > 0) {
-        const attacksPreview = document.createElement('div');
-        attacksPreview.className = 'tcg-attacks-preview';
-        attacksPreview.innerHTML = `
-            <div class="tcg-preview-label">Attacks:</div>
-            <div class="tcg-preview-content">
-                ${card.attacks.map(attack => attack.name).join(', ')}
-            </div>
-        `;
-        detailsElement.appendChild(attacksPreview);
-    }
-    
-    if (card.abilities && card.abilities.length > 0) {
-        const abilitiesPreview = document.createElement('div');
-        abilitiesPreview.className = 'tcg-abilities-preview';
-        abilitiesPreview.innerHTML = `
-            <div class="tcg-preview-label">Abilities:</div>
-            <div class="tcg-preview-content">
-                ${card.abilities.map(ability => ability.name).join(', ')}
-            </div>
-        `;
-        detailsElement.appendChild(abilitiesPreview);
-    }
-    
-    cardElement.appendChild(imageElement);
-    cardElement.appendChild(detailsElement);
-    
-    return cardElement;
+    detailsElement.appendChild(attacksPreview);
+}
+
+if (card.abilities && card.abilities.length > 0) {
+    const abilitiesPreview = document.createElement('div');
+    abilitiesPreview.className = 'tcg-abilities-preview';
+    abilitiesPreview.innerHTML = `
+        <div class="tcg-preview-label">Abilities:</div>
+        <div class="tcg-preview-content">
+            ${card.abilities.map(ability => ability.name).join(', ')}
+        </div>
+    `;
+    detailsElement.appendChild(abilitiesPreview);
+}
+
+cardElement.appendChild(imageElement);
+cardElement.appendChild(detailsElement);
+
+return cardElement;
 };
 
 window.DexApp.TCG.toggleSetCollapse = function(headerElement) {
-    const contentElement = headerElement.nextElementSibling;
-    const iconElement = headerElement.querySelector('i');
-    const isCollapsed = headerElement.classList.toggle('collapsed');
-    contentElement.classList.toggle('hidden', isCollapsed);
+if (!headerElement) return;
+
+const contentElement = headerElement.nextElementSibling;
+if (!contentElement) return;
+
+const iconElement = headerElement.querySelector('i');
+const isCollapsed = headerElement.classList.toggle('collapsed');
+
+contentElement.classList.toggle('hidden', isCollapsed);
+
+if (iconElement) {
     iconElement.classList.toggle('fa-chevron-down', !isCollapsed);
     iconElement.classList.toggle('fa-chevron-right', isCollapsed);
+}
 };
 
 // --- TCG Lightbox ---
 window.DexApp.TCG.openTcgLightbox = function(cardId) {
-    const card = this.state.currentTcgCards.find(c => c.id === cardId);
-    if (!card) return;
-    
-    this.elements.lightboxCardName.textContent = card.name;
-    
-    this.elements.lightboxCardImage.src = card.images?.large || 
-                                          card.images?.small || 
-                                          'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
-                                          
-    this.elements.lightboxCardImage.alt = `Large image of ${card.name}`;
-    
-    this.elements.lightboxCardImage.onerror = () => {
-        this.elements.lightboxCardImage.src = 'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
-    };
-    
-    // Build detailed card info
-    let detailsHtml = `
-        <p><strong>Set:</strong> ${card.set?.name || 'N/A'} (${card.set?.series || 'N/A'})</p>
-        <p><strong>Card #:</strong> ${card.number || 'N/A'} / ${card.set?.printedTotal || card.set?.total || 'N/A'}</p>
-    `;
-    
-    if (card.hp) detailsHtml += `<p><strong>HP:</strong> ${card.hp}</p>`;
-    if (card.types?.length) detailsHtml += `<p><strong>Type(s):</strong> ${card.types.join(', ')}</p>`;
-    if (card.rarity) detailsHtml += `<p><strong>Rarity:</strong> ${card.rarity}</p>`;
-    if (card.artist) detailsHtml += `<p><strong>Artist:</strong> ${card.artist}</p>`;
-    
-    // Display attacks
-    if (card.attacks?.length) {
-        detailsHtml += `<h4 class="lightbox-detail-title">Attacks</h4>`;
-        card.attacks.forEach(attack => {
-            let costHtml = attack.cost?.map(type => 
-                `<span class="tcg-cost-icon tcg-type-${type}" title="${type}"></span>`
-            ).join('') || '(No Cost)';
-            
-            detailsHtml += `
-                <div class="lightbox-attack">
-                    <p>
-                        <strong>${attack.name}</strong> ${costHtml} 
-                        ${attack.damage ? `<span class="float-right font-bold">${attack.damage}</span>` : ''}
-                    </p>
-                    ${attack.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${attack.text}</p>` : ''}
-                </div>
-            `;
-        });
+const card = this.state.currentTcgCards.find(c => c.id === cardId);
+if (!card) return;
+
+const elements = this.elements;
+if (!elements.tcgLightbox || !elements.lightboxCardName || !elements.lightboxCardImage || !elements.lightboxCardDetails) {
+    console.error("TCG lightbox elements missing!");
+    return;
+}
+
+elements.lightboxCardName.textContent = card.name;
+
+elements.lightboxCardImage.src = card.images?.large || 
+                                  card.images?.small || 
+                                  'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
+                                  
+elements.lightboxCardImage.alt = `Large image of ${card.name}`;
+
+elements.lightboxCardImage.onerror = () => {
+    elements.lightboxCardImage.src = 'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
+};
+
+// Build detailed card info
+let detailsHtml = `
+    <p><strong>Set:</strong> ${card.set?.name || 'N/A'} (${card.set?.series || 'N/A'})</p>
+    <p><strong>Card #:</strong> ${card.number || 'N/A'} / ${card.set?.printedTotal || card.set?.total || 'N/A'}</p>
+`;
+
+if (card.hp) detailsHtml += `<p><strong>HP:</strong> ${card.hp}</p>`;
+if (card.types?.length) detailsHtml += `<p><strong>Type(s):</strong> ${card.types.join(', ')}</p>`;
+if (card.rarity) detailsHtml += `<p><strong>Rarity:</strong> ${card.rarity}</p>`;
+if (card.artist) detailsHtml += `<p><strong>Artist:</strong> ${card.artist}</p>`;
+
+// Display attacks
+if (card.attacks?.length) {
+    detailsHtml += `<h4 class="lightbox-detail-title">Attacks</h4>`;
+    card.attacks.forEach(attack => {
+        let costHtml = attack.cost?.map(type => 
+            `<span class="tcg-cost-icon tcg-type-${type}" title="${type}"></span>`
+        ).join('') || '(No Cost)';
+        
+        detailsHtml += `
+            <div class="lightbox-attack">
+                <p>
+                    <strong>${attack.name}</strong> ${costHtml} 
+                    ${attack.damage ? `<span class="float-right font-bold">${attack.damage}</span>` : ''}
+                </p>
+                ${attack.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${attack.text}</p>` : ''}
+            </div>
+        `;
+    });
+}
+
+// Display abilities
+if (card.abilities?.length) {
+    detailsHtml += `<h4 class="lightbox-detail-title">Abilities</h4>`;
+    card.abilities.forEach(ability => {
+        detailsHtml += `
+            <div class="lightbox-ability">
+                <p><strong>${ability.name}</strong> (${ability.type})</p>
+                ${ability.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${ability.text}</p>` : ''}
+            </div>
+        `;
+    });
+}
+
+// Display combat info
+detailsHtml += `<h4 class="lightbox-detail-title">Combat Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
+detailsHtml += `<div><strong>Weakness:</strong> ${card.weaknesses ? card.weaknesses.map(w => `${w.type} ${w.value}`).join(', ') : 'None'}</div>`;
+detailsHtml += `<div><strong>Resistance:</strong> ${card.resistances ? card.resistances.map(r => `${r.type} ${r.value}`).join(', ') : 'None'}</div>`;
+detailsHtml += `<div><strong>Retreat:</strong> ${card.retreatCost ? card.retreatCost.join(', ') : '0'}</div></div>`;
+
+// Display legality info if available
+if (card.legalities) {
+    detailsHtml += `<h4 class="lightbox-detail-title">Legality Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
+    for (const [format, status] of Object.entries(card.legalities)) {
+        const statusClass = status === 'Legal' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]';
+        detailsHtml += `<div><strong>${format}:</strong> <span class="${statusClass}">${status}</span></div>`;
     }
-    
-    // Display abilities
-    if (card.abilities?.length) {
-        detailsHtml += `<h4 class="lightbox-detail-title">Abilities</h4>`;
-        card.abilities.forEach(ability => {
-            detailsHtml += `
-                <div class="lightbox-ability">
-                    <p><strong>${ability.name}</strong> (${ability.type})</p>
-                    ${ability.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${ability.text}</p>` : ''}
-                </div>
-            `;
-        });
-    }
-    
-    // Display combat info
-    detailsHtml += `<h4 class="lightbox-detail-title">Combat Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
-    detailsHtml += `<div><strong>Weakness:</strong> ${card.weaknesses ? card.weaknesses.map(w => `${w.type} ${w.value}`).join(', ') : 'None'}</div>`;
-    detailsHtml += `<div><strong>Resistance:</strong> ${card.resistances ? card.resistances.map(r => `${r.type} ${r.value}`).join(', ') : 'None'}</div>`;
-    detailsHtml += `<div><strong>Retreat:</strong> ${card.retreatCost ? card.retreatCost.join(', ') : '0'}</div></div>`;
-    
-    // Display legality info if available
-    if (card.legalities) {
-        detailsHtml += `<h4 class="lightbox-detail-title">Legality Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
-        for (const [format, status] of Object.entries(card.legalities)) {
-            const statusClass = status === 'Legal' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]';
-            detailsHtml += `<div><strong>${format}:</strong> <span class="${statusClass}">${status}</span></div>`;
-        }
-        detailsHtml += `</div>`;
-    }
-    
-    this.elements.lightboxCardDetails.innerHTML = detailsHtml;
-    this.elements.tcgLightbox.classList.add('visible');
+    detailsHtml += `</div>`;
+}
+
+elements.lightboxCardDetails.innerHTML = detailsHtml;
+
+// Check if Lightbox utility is available or use basic class toggle
+if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.openTcgLightbox === 'function') {
+    window.DexApp.Lightbox.openTcgLightbox(card);
+} else {
+    console.warn("Lightbox utility not found, using basic class toggle");
+    elements.tcgLightbox.classList.add('visible');
     document.body.style.overflow = 'hidden';
+}
 };
 
 window.DexApp.TCG.closeTcgLightbox = function() {
-    this.elements.tcgLightbox.classList.remove('visible');
+const elements = this.elements;
+if (!elements.tcgLightbox) {
+    console.error("TCG lightbox element missing!");
+    return;
+}
+
+// Check if Lightbox utility is available or use basic class toggle
+if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.closeTcgLightbox === 'function') {
+    window.DexApp.Lightbox.closeTcgLightbox();
+} else {
+    console.warn("Lightbox utility not found, using basic class toggle");
+    elements.tcgLightbox.classList.remove('visible');
     document.body.style.overflow = '';
-    this.elements.lightboxCardImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-    this.elements.lightboxCardDetails.innerHTML = '<p>Loading details...</p>';
+}
+
+if (elements.lightboxCardImage) {
+    elements.lightboxCardImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+}
+
+if (elements.lightboxCardDetails) {
+    elements.lightboxCardDetails.innerHTML = '<p>Loading details...</p>';
+}
 };
 
 window.DexApp.TCG.showDetailTcgError = function(message) {
-    if (this.elements.detailTcgErrorText) {
-        this.elements.detailTcgErrorText.textContent = message;
-    }
-    
-    if (this.elements.detailTcgErrorDiv) {
-        this.elements.detailTcgErrorDiv.classList.remove('hidden');
-    }
+if (this.elements.detailTcgErrorText) {
+    this.elements.detailTcgErrorText.textContent = message;
+}
+
+if (this.elements.detailTcgErrorDiv) {
+    this.elements.detailTcgErrorDiv.classList.remove('hidden');
+}
+
+console.error("TCG Error:", message);
 };
+
+// Add a module-loaded tracking for diagnostics
+if (window.trackScriptLoad) {
+window.trackScriptLoad('tcgModule.js');
+}
+
+console.log("TCG module loaded with fallback constants.");

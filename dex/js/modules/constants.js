@@ -1,9 +1,13 @@
 /**
  * @file        dex/js/modules/constants.js
  * @description Defines constants used throughout the Pokédex application.
- * @version     1.0.0
- * @date        2025-05-03
+ * @version     1.1.0
+ * @date        2025-05-06
  * @author      Your Name/AI Assistant
+ * 
+ * @changelog
+ * v1.1.0 (2025-05-06): Added TCG_TYPES and TCG_RARITIES constants.
+ * v1.0.0 (2025-05-03): Initial constants definition.
  */
 
 // Ensure the main application namespace exists
@@ -36,6 +40,20 @@ window.DexApp.Constants.POKEMON_TYPES = [
     "rock", "ghost", "dragon", "dark", "steel", "fairy"
 ];
 
+// --- TCG Types and Rarities ---
+// Added for TCG module functionality
+window.DexApp.Constants.TCG_TYPES = [
+    "Colorless", "Darkness", "Dragon", "Fairy", "Fighting", 
+    "Fire", "Grass", "Lightning", "Metal", "Psychic", "Water"
+];
+
+window.DexApp.Constants.TCG_RARITIES = [
+    "Common", "Uncommon", "Rare", "Rare Holo", "Rare Ultra", 
+    "Rare Secret", "Rare Holo GX", "Rare Holo EX", "Rare Holo V", 
+    "Rare Holo VMAX", "Rare Shining", "Amazing Rare", "Rare Rainbow",
+    "Rare Holo Star", "Radiant Rare", "Promo"
+];
+
 // --- Pokémon Natures ---
 window.DexApp.Constants.NATURES = [
     "Hardy", "Lonely", "Brave", "Adamant", "Naughty",
@@ -49,4 +67,15 @@ window.DexApp.Constants.NATURES = [
 // Example:
 // window.DexApp.Constants.API_BASE_URL = 'https://pokeapi.co/api/v2/';
 
-console.log("Constants module loaded.");
+// --- Fossil Pokémon IDs ---
+// List of Pokémon IDs that are considered fossils
+window.DexApp.Constants.FOSSIL_POKEMON_IDS = new Set([
+    138, 139, 140, 141, 142, 
+    345, 346, 347, 348, 
+    408, 409, 410, 411, 
+    564, 565, 566, 567, 
+    696, 697, 698, 699, 
+    880, 881, 882, 883
+]);
+
+console.log("Constants module loaded (v1.1.0 - with TCG constants).");
