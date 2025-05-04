@@ -18,15 +18,14 @@ window.DexApp.DetailView.state = {
     currentStatSort: 'default',
     activeSubTab: 'summary-content',
     currentMovesPage: 1,
-    movesPerPage: window.DexApp.Constants.MAX_MOVES_DISPLAY
+    movesPerPage: window.DexApp.Constants.MAX_MOVES_DISPLAY,
+    currentAudio: null // For cry playback
 };
 
 // DOM Elements
 window.DexApp.DetailView.elements = {
     detailViewLightbox: document.getElementById('detail-view-lightbox'),
     detailCloseButton: document.getElementById('detail-close-button'),
-    prevPokemonButton: document.getElementById('prev-pokemon-button'),
-    nextPokemonButton: document.getElementById('next-pokemon-button'),
     detailLoader: document.getElementById('detail-loader'),
     detailErrorMessageDiv: document.getElementById('detail-error-message'),
     detailErrorText: document.getElementById('detail-error-text'),
@@ -34,8 +33,8 @@ window.DexApp.DetailView.elements = {
     detailContentSection: document.getElementById('content-section'),
     detailVisualSection: document.getElementById('visual-section'),
     detailPokemonNameDisplay: document.getElementById('pokemon-name-display'),
-    detailPokemonSoundControl: document.getElementById('pokemon-sound-control'),
     detailPokemonIdSpan: document.getElementById('pokemon-id'),
+    detailPlayCryButton: document.getElementById('play-cry-button'),
     detailVariantSelectorContainer: document.getElementById('variant-selector-container'),
     detailVariantSelect: document.getElementById('variant-select'),
     detailGameVersionSelect: document.getElementById('game-version-select'),
@@ -72,38 +71,13 @@ window.DexApp.DetailView.elements.detailSubTabContents =
 
 // --- Initialize Detail View ---
 window.DexApp.DetailView.initialize = function() {
+    console.log("Initializing Detail View module...");
     this.setupEventListeners();
+    console.log("Detail View module initialized.");
 };
 
 window.DexApp.DetailView.setupEventListeners = function() {
     const elements = this.elements;
-    
-    // Close button
-    elements.detailCloseButton.addEventListener('click', () => this.closeDetailLightbox());
-    
-    // Click outside to close
-    elements.detailViewLightbox.addEventListener('click', (event) => {
-        if (event.target === elements.detailViewLightbox) this.closeDetailLightbox();
-    });
-    
-    // Navigation buttons
-    if (elements.prevPokemonButton) {
-        elements.prevPokemonButton.addEventListener('click', () => {
-            const prevId = elements.prevPokemonButton.dataset.id;
-            if (prevId) {
-                this.fetchAndDisplayDetailData(parseInt(prevId));
-            }
-        });
-    }
-    
-    if (elements.nextPokemonButton) {
-        elements.nextPokemonButton.addEventListener('click', () => {
-            const nextId = elements.nextPokemonButton.dataset.id;
-            if (nextId) {
-                this.fetchAndDisplayDetailData(parseInt(nextId));
-            }
-        });
-    }
     
     // Main Tabs
     elements.detailMainTabsContainer.addEventListener('click', (event) => {
@@ -131,6 +105,11 @@ window.DexApp.DetailView.setupEventListeners = function() {
             this.fetchAndDisplayDetailData(selectedVariantIdentifier);
         }
     });
+    
+    // Play cry button (if present)
+    if (elements.detailPlayCryButton) {
+        elements.detailPlayCryButton.addEventListener('click', () => this.playPokemonCry());
+    }
     
     // Stat Sort Buttons
     elements.detailStatSortButtonsContainer.addEventListener('click', (event) => {
@@ -165,50 +144,18 @@ window.DexApp.DetailView.setupEventListeners = function() {
 };
 
 // --- Detail View Display Functions ---
-window.DexApp.DetailView.openDetailLightbox = function() {
-    console.log("Opening detail lightbox...");
-    const lightbox = this.elements.detailViewLightbox;
-    
-    if (!lightbox) {
-        console.error("Detail lightbox element not found!");
-        return;
-    }
-    
-    lightbox.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        lightbox.classList.add('visible');
-    });
-    
-    document.body.style.overflow = 'hidden';
-};
-
-window.DexApp.DetailView.closeDetailLightbox = function() {
-    const lightbox = this.elements.detailViewLightbox;
-    if (!lightbox) return;
-    
-    lightbox.classList.remove('visible');
-    
-    const handleTransitionEnd = (event) => {
-        if (event.target === lightbox && !lightbox.classList.contains('visible')) {
-            lightbox.classList.add('hidden');
-            lightbox.removeEventListener('transitionend', handleTransitionEnd);
-        }
-    };
-    
-    lightbox.addEventListener('transitionend', handleTransitionEnd);
-    
-    // Fallback timeout in case transition doesn't fire
-    setTimeout(() => {
-        if (!lightbox.classList.contains('visible')) {
-            lightbox.classList.add('hidden');
-        }
-    }, 500);
-    
-    document.body.style.overflow = '';
-};
-
 window.DexApp.DetailView.fetchAndDisplayDetailData = async function(identifier) {
-    this.openDetailLightbox(); // Open lightbox shell immediately
+    // Use the lightbox module to open the detail view
+    if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.openDetailLightbox === 'function') {
+        window.DexApp.Lightbox.openDetailLightbox();
+    } else {
+        // Fallback to direct DOM manipulation if lightbox module unavailable
+        this.elements.detailViewLightbox.classList.remove('hidden');
+        requestAnimationFrame(() => {
+            this.elements.detailViewLightbox.classList.add('visible');
+        });
+        document.body.style.overflow = 'hidden';
+    }
     
     window.DexApp.Utils.UI.showLoader(this.elements.detailLoader);
     this.elements.detailPokemonInfoDiv.classList.add('hidden');
@@ -228,42 +175,19 @@ window.DexApp.DetailView.fetchAndDisplayDetailData = async function(identifier) 
         this.state.currentSpeciesData = data.fullSpeciesData;
         this.state.currentVarieties = data.varieties || [];
         
-        // Update navigation controls
-        this.updateDetailNavigation(data.id);
-        
         // Process and display the data
         this.processAndDisplayDetailData(data);
         
         // Fetch TCG cards
-        window.DexApp.TCG.fetchAndDisplayTcgData(data.baseName || data.name);
+        if (window.DexApp.TCG && typeof window.DexApp.TCG.fetchAndDisplayTcgData === 'function') {
+            window.DexApp.TCG.fetchAndDisplayTcgData(data.baseName || data.name);
+        }
         
     } catch (error) {
         console.error("Error fetching detail data:", error);
         this.showDetailError(error.message);
     } finally {
         window.DexApp.Utils.UI.hideLoader(this.elements.detailLoader);
-    }
-};
-
-window.DexApp.DetailView.updateDetailNavigation = function(currentId) {
-    // Find the previous and next Pokémon IDs
-    const prevId = currentId > 1 ? currentId - 1 : null;
-    const nextId = currentId < 1010 ? currentId + 1 : null; // Adjust max ID as needed
-    
-    if (prevId) {
-        this.elements.prevPokemonButton.classList.remove('disabled');
-        this.elements.prevPokemonButton.dataset.id = prevId;
-    } else {
-        this.elements.prevPokemonButton.classList.add('disabled');
-        this.elements.prevPokemonButton.dataset.id = '';
-    }
-    
-    if (nextId) {
-        this.elements.nextPokemonButton.classList.remove('disabled');
-        this.elements.nextPokemonButton.dataset.id = nextId;
-    } else {
-        this.elements.nextPokemonButton.classList.add('disabled');
-        this.elements.nextPokemonButton.dataset.id = '';
     }
 };
 
@@ -285,10 +209,10 @@ window.DexApp.DetailView.processAndDisplayDetailData = function(detailedData) {
     
     // Process stats data
     this.state.currentStats = this.state.currentPokemonData.stats
-        .filter(si => window.DexApp.DetailView.getStatName(si.stat.name))
+        .filter(si => this.getStatName(si.stat.name))
         .map(si => ({
             name: si.stat.name,
-            displayName: window.DexApp.DetailView.getStatName(si.stat.name),
+            displayName: this.getStatName(si.stat.name),
             value: si.base_stat
         }));
     this.state.currentStatSort = 'default';
@@ -328,16 +252,13 @@ window.DexApp.DetailView.processAndDisplayDetailData = function(detailedData) {
             .sort((a, b) => a.version.localeCompare(b.version));
     }
     
-    // Setup sound control if available
-    this.setupSoundControl(detailedData.cry);
-    
     // Setup variants
     this.populateVariantSelector(detailedData.varieties || [], this.state.currentPokemonData.name);
     this.elements.detailVariantSelectorContainer.classList.toggle('hidden', !detailedData.hasVariants);
     
     // Update UI sections
     this.updateDetailVisualSection(detailedData.hasGenderSprites);
-    this.updateDetailGameInfoTab(detailedData.hasVariants, detailedData.locationData);
+    this.updateDetailGameInfoTab(detailedData.hasVariants);
     
     // Show the detail view
     this.elements.detailPokemonInfoDiv.classList.remove('hidden');
@@ -349,41 +270,64 @@ window.DexApp.DetailView.processAndDisplayDetailData = function(detailedData) {
                    
     this.switchSubTab(this.elements.detailGameInfoTabsContainer.querySelector('.sub-tab-button.active') || 
                       this.elements.detailSubTabButtons[0]);
+                      
+    // Try to play cry
+    if (detailedData.cry) {
+        this.setupCryButton(detailedData.cry);
+    }
 };
 
-window.DexApp.DetailView.setupSoundControl = function(cryUrl) {
-    // Setup sound control if available
+window.DexApp.DetailView.setupCryButton = function(cryUrl) {
+    const cryButton = this.elements.detailPlayCryButton;
+    if (!cryButton) return;
+    
     if (cryUrl) {
-        const audioControl = `
-            <div class="sound-control">
-                <button class="sound-button" title="Play Pokémon cry">
-                    <i class="fas fa-volume-up"></i>
-                </button>
-                <input type="range" class="volume-slider" min="0" max="100" value="70" title="Volume">
-                <audio src="${cryUrl}" preload="none"></audio>
-            </div>
-        `;
-        this.elements.detailPokemonSoundControl.innerHTML = audioControl;
+        cryButton.classList.remove('hidden');
         
-        // Add event listener for sound button
-        const soundButton = this.elements.detailPokemonSoundControl.querySelector('.sound-button');
-        const audio = this.elements.detailPokemonSoundControl.querySelector('audio');
-        const volumeSlider = this.elements.detailPokemonSoundControl.querySelector('.volume-slider');
-        
-        soundButton.addEventListener('click', () => {
-            audio.volume = volumeSlider.value / 100;
-            audio.currentTime = 0;
-            audio.play();
-        });
-        
-        volumeSlider.addEventListener('input', () => {
-            audio.volume = volumeSlider.value / 100;
-        });
-        
-        this.elements.detailPokemonSoundControl.classList.remove('hidden');
+        // Set up click handler
+        cryButton.onclick = () => {
+            // Clear previous audio if any
+            if (this.state.currentAudio) {
+                this.state.currentAudio.pause();
+                this.state.currentAudio = null;
+            }
+            
+            // Create and play new audio
+            try {
+                const audio = new Audio(cryUrl);
+                audio.volume = 0.7; // Set to 70% volume
+                audio.play().catch(e => console.error("Failed to play cry:", e));
+                this.state.currentAudio = audio;
+            } catch (e) {
+                console.error("Error creating audio:", e);
+            }
+        };
     } else {
-        this.elements.detailPokemonSoundControl.innerHTML = '';
-        this.elements.detailPokemonSoundControl.classList.add('hidden');
+        cryButton.classList.add('hidden');
+    }
+};
+
+window.DexApp.DetailView.playPokemonCry = function() {
+    const cryUrl = this.state.currentPokemonData?.cries?.latest || 
+                   this.state.currentPokemonData?.cries?.legacy;
+                   
+    if (!cryUrl) {
+        console.warn('No cry available for this Pokémon');
+        return;
+    }
+    
+    if (this.state.currentAudio) {
+        this.state.currentAudio.pause();
+        this.state.currentAudio = null;
+    }
+    
+    try {
+        const audio = new Audio(cryUrl);
+        audio.volume = 0.7;
+        audio.play().catch(e => console.error("Failed to play cry:", e));
+        this.state.currentAudio = audio;
+    } catch (e) {
+        console.error("Error creating audio:", e);
     }
 };
 
@@ -464,6 +408,8 @@ window.DexApp.DetailView.populateVariantSelector = function(varieties, currentFo
         return;
     }
     
+    console.log("Populating variant selector with:", varieties);
+    
     varieties.forEach(variant => {
         const option = document.createElement('option');
         option.value = variant.identifier;
@@ -517,9 +463,15 @@ window.DexApp.DetailView.updateDetailVisualSection = function(hasGenderSprites) 
         typeBadge.style.backgroundColor = typeColor;
         this.elements.detailPokemonTypesDiv.appendChild(typeBadge);
     });
+    
+    // Setup cry button if available
+    const hasCry = this.state.currentPokemonData.cries?.latest || this.state.currentPokemonData.cries?.legacy;
+    if (this.elements.detailPlayCryButton) {
+        this.elements.detailPlayCryButton.classList.toggle('hidden', !hasCry);
+    }
 };
 
-window.DexApp.DetailView.updateDetailGameInfoTab = function(hasVariants, locationData) {
+window.DexApp.DetailView.updateDetailGameInfoTab = function(hasVariants) {
     if (!this.state.currentPokemonData) return;
     
     this.elements.detailPokemonNameDisplay.textContent = 
@@ -529,102 +481,15 @@ window.DexApp.DetailView.updateDetailGameInfoTab = function(hasVariants, locatio
         `#${this.state.currentPokemonData.id.toString().padStart(3, '0')}`;
         
     this.elements.detailPokemonHeightP.textContent = 
-        `${this.state.currentPokemonData.height / 10} m`;
+        `${(this.state.currentPokemonData.height / 10).toFixed(1)} m`;
         
     this.elements.detailPokemonWeightP.textContent = 
-        `${this.state.currentPokemonData.weight / 10} kg`;
-    
-    // Process and display spawn rate info
-    this.updateSpawnRateInfo(locationData);
+        `${(this.state.currentPokemonData.weight / 10).toFixed(1)} kg`;
     
     this.elements.detailVariantInfoSection.classList.toggle('hidden', !hasVariants);
     this.populateVersionSelector();
     this.updateDescription();
     this.renderActiveSubTabContent();
-};
-
-window.DexApp.DetailView.updateSpawnRateInfo = function(locationData) {
-    const spawnRateSection = document.getElementById('spawn-rate-section');
-    
-    if (!locationData || locationData.length === 0) {
-        if (spawnRateSection) spawnRateSection.classList.add('hidden');
-        return;
-    }
-    
-    // Format spawn rate information
-    let spawnRateHtml = '';
-    const groupedByLocation = {};
-    
-    locationData.forEach(encounter => {
-        const locationName = window.DexApp.Utils.formatters.formatName(
-            encounter.location_area.name.replace('-area', '')
-        );
-        
-        if (!groupedByLocation[locationName]) {
-            groupedByLocation[locationName] = [];
-        }
-        
-        encounter.version_details.forEach(detail => {
-            const versionName = window.DexApp.Utils.formatters.formatName(detail.version.name);
-            const maxChance = detail.max_chance;
-            const rateText = maxChance >= 50 ? 'Common' : 
-                             maxChance >= 25 ? 'Uncommon' : 
-                             maxChance >= 10 ? 'Rare' : 'Very Rare';
-            
-            // Store unique version/rate combinations
-            if (!groupedByLocation[locationName].some(item => 
-                item.version === versionName && item.rate === rateText)) {
-                groupedByLocation[locationName].push({
-                    version: versionName,
-                    rate: rateText,
-                    chance: maxChance
-                });
-            }
-        });
-    });
-    
-    // Generate HTML for spawn rates
-    if (Object.keys(groupedByLocation).length > 0) {
-        spawnRateHtml = '<div class="spawn-rate-container">';
-        
-        for (const location in groupedByLocation) {
-            if (groupedByLocation[location].length > 0) {
-                spawnRateHtml += `<div class="spawn-location"><strong>${location}:</strong>`;
-                
-                groupedByLocation[location].forEach(data => {
-                    // Create color-coded rate indicator
-                    const rateColor = data.rate === 'Common' ? '#16a34a' : 
-                                      data.rate === 'Uncommon' ? '#f59e0b' : 
-                                      data.rate === 'Rare' ? '#ef4444' : '#7c3aed';
-                              
-                    spawnRateHtml += `
-                        <div class="spawn-detail">
-                            <span class="game-version">${data.version}</span>
-                            <span class="spawn-rate" style="color: ${rateColor}">
-                                ${data.rate} (${data.chance}%)
-                            </span>
-                        </div>
-                    `;
-                });
-                
-                spawnRateHtml += '</div>';
-            }
-        }
-        
-        spawnRateHtml += '</div>';
-        
-        if (spawnRateSection) {
-            spawnRateSection.innerHTML = `
-                <h4 class="info-section-title !mb-1 !border-b-0 !text-sm !text-[var(--color-text-secondary)]">
-                    Spawn Rates
-                </h4>
-                <div class="spawn-rate-info">${spawnRateHtml}</div>
-            `;
-            spawnRateSection.classList.remove('hidden');
-        }
-    } else {
-        if (spawnRateSection) spawnRateSection.classList.add('hidden');
-    }
 };
 
 window.DexApp.DetailView.populateVersionSelector = function() {
@@ -757,8 +622,11 @@ window.DexApp.DetailView.renderAbilities = function() {
     if (this.state.currentPokemonData.abilities.length > 0) {
         this.state.currentPokemonData.abilities.forEach(abilityInfo => {
             const abilityItem = document.createElement('li');
+            abilityItem.textContent = window.DexApp.Utils.formatters.formatName(abilityInfo.ability.name);
+            if (abilityInfo.is_hidden) abilityItem.innerHTML += ' <span class="italic">(Hidden)</span>';
+            this.elements.detailAbilitiesList.appendChild(abilityItem);
             
-            // Fetch the ability description
+            // Try to fetch ability description
             fetch(abilityInfo.ability.url)
                 .then(response => response.json())
                 .then(abilityData => {
@@ -766,33 +634,14 @@ window.DexApp.DetailView.renderAbilities = function() {
                         entry => entry.language.name === 'en'
                     );
                     
-                    const description = englishEntries.length > 0 
-                        ? englishEntries[0].effect 
-                        : 'No description available.';
-                    
-                    abilityItem.innerHTML = `
-                        <div class="ability-name">
-                            ${window.DexApp.Utils.formatters.formatName(abilityInfo.ability.name)}
-                            ${abilityInfo.is_hidden ? '<span class="italic">(Hidden)</span>' : ''}
-                        </div>
-                        <div class="ability-description text-sm text-[var(--color-text-secondary)] mt-1">
-                            ${description}
-                        </div>
-                    `;
+                    if (englishEntries.length > 0) {
+                        const description = document.createElement('p');
+                        description.className = 'text-sm text-[var(--color-text-secondary)] mt-1';
+                        description.textContent = englishEntries[0].short_effect || englishEntries[0].effect;
+                        abilityItem.appendChild(description);
+                    }
                 })
-                .catch(error => {
-                    abilityItem.innerHTML = `
-                        <div class="ability-name">
-                            ${window.DexApp.Utils.formatters.formatName(abilityInfo.ability.name)}
-                            ${abilityInfo.is_hidden ? '<span class="italic">(Hidden)</span>' : ''}
-                        </div>
-                        <div class="ability-description text-sm text-[var(--color-text-secondary)] mt-1">
-                            Failed to load ability description.
-                        </div>
-                    `;
-                });
-            
-            this.elements.detailAbilitiesList.appendChild(abilityItem);
+                .catch(error => console.warn(`Failed to fetch ability details: ${error}`));
         });
     } else {
         this.elements.detailAbilitiesList.innerHTML = 
@@ -822,41 +671,32 @@ window.DexApp.DetailView.renderMoves = function() {
     
     movesToDisplay.forEach(move => {
         const moveItem = document.createElement('li');
-        
-        // Fetch move details
-        fetch(`${window.DexApp.Constants.POKEAPI_BASE_URL}/move/${move.name.replace(' ', '-')}`)
-            .then(response => response.json())
-            .then(moveData => {
-                const moveType = moveData.type.name;
-                const movePower = moveData.power || '-';
-                const moveAccuracy = moveData.accuracy || '-';
-                const moveCategory = moveData.damage_class?.name || 'unknown';
-                
-                moveItem.innerHTML = `
-                    <div class="move-basic-info">
-                        <span class="move-level">Lv ${move.level}</span>
-                        <span class="move-name">${window.DexApp.Utils.formatters.formatName(move.name)}</span>
-                        <span class="move-type type-${moveType}">${moveType}</span>
-                    </div>
-                    <div class="move-details">
-                        <span class="move-power" title="Power">
-                            <i class="fas fa-fist-raised"></i> ${movePower}
-                        </span>
-                        <span class="move-accuracy" title="Accuracy">
-                            <i class="fas fa-bullseye"></i> ${moveAccuracy}
-                        </span>
-                        <span class="move-category ${moveCategory}" title="${window.DexApp.Utils.formatters.capitalize(moveCategory)}">
-                            <i class="fas fa-${moveCategory === 'physical' ? 'hand-rock' : 
-                                                moveCategory === 'special' ? 'magic' : 'question'}"></i>
-                        </span>
-                    </div>
-                `;
-            })
-            .catch(error => {
-                moveItem.textContent = `Lv ${move.level}: ${window.DexApp.Utils.formatters.formatName(move.name)}`;
-            });
-        
+        moveItem.textContent = `Lv ${move.level}: ${window.DexApp.Utils.formatters.formatName(move.name)}`;
         this.elements.detailMovesList.appendChild(moveItem);
+        
+        // Try to fetch move details
+        if (move.url) {
+            fetch(move.url)
+                .then(response => response.json())
+                .then(moveData => {
+                    // Add type badge
+                    const typeBadge = document.createElement('span');
+                    typeBadge.className = `type-badge type-${moveData.type.name}`;
+                    typeBadge.textContent = moveData.type.name;
+                    typeBadge.style.fontSize = '0.7rem';
+                    typeBadge.style.padding = '0.1rem 0.3rem';
+                    typeBadge.style.marginLeft = '0.5rem';
+                    
+                    // Create formatted move item
+                    moveItem.innerHTML = `
+                        <span>Lv ${move.level}: ${window.DexApp.Utils.formatters.formatName(move.name)}</span>
+                        ${typeBadge.outerHTML}
+                        <span class="move-power">${moveData.power || '-'}</span>
+                        <span class="move-accuracy">${moveData.accuracy || '-'}</span>
+                    `;
+                })
+                .catch(error => console.warn(`Failed to fetch move details: ${error}`));
+        }
     });
     
     if (this.elements.detailMovesPagination) {
@@ -975,13 +815,16 @@ window.DexApp.DetailView.resetDetailUIState = function() {
     this.elements.detailVariantSelectorContainer.classList.add('hidden');
     this.elements.detailVariantSelect.innerHTML = '';
     
-    // Reset sound control
-    this.elements.detailPokemonSoundControl.innerHTML = '';
-    this.elements.detailPokemonSoundControl.classList.add('hidden');
+    // Stop any playing cry
+    if (this.state.currentAudio) {
+        this.state.currentAudio.pause();
+        this.state.currentAudio = null;
+    }
     
-    // Reset spawn rate
-    const spawnRateSection = document.getElementById('spawn-rate-section');
-    if (spawnRateSection) spawnRateSection.classList.add('hidden');
+    // Reset cry button
+    if (this.elements.detailPlayCryButton) {
+        this.elements.detailPlayCryButton.classList.add('hidden');
+    }
     
     this.switchSubTab(this.elements.detailGameInfoTabsContainer.querySelector('[data-subtab="summary-content"]'));
     this.hideMovesPagination();

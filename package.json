@@ -1,0 +1,22 @@
+{
+  "name": "pokedex",
+  "version": "1.0.0",
+  "description": "Interactive Pokedex Viewer",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build:data": "node scripts/build-pokedex-data.js",
+    "build": "pnpm run build:data"
+  },
+  "keywords": [
+    "pokemon",
+    "pokedex",
+    "javascript"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "packageManager": "pnpm@10.6.2",
+  "dependencies": {
+    "node-fetch": "^3.3.2"
+  }
+}

@@ -1,0 +1,163 @@
+/* dex/css/pokedex-enhancements.css */
+/* Add this file IN ADDITION to your existing dex.css */
+
+/* --- Title Glow Effect --- */
+@keyframes text-flicker {
+    0%, 10%, 12%, 20%, 22%, 30%, 32%, 40%, 42%, 50%, 52%, 60%, 62%, 70%, 72%, 80%, 82%, 90%, 92%, 100% {
+        text-shadow: 0 0 5px rgba(248, 113, 113, 0.7), /* Primary */
+                     0 0 10px rgba(251, 191, 36, 0.6), /* Accent */
+                     0 0 15px rgba(90, 8, 102, 0.5);   /* Secondary */
+        opacity: 1;
+    }
+    11%, 21%, 31%, 41%, 51%, 61%, 71%, 81%, 91% {
+        text-shadow: 0 0 4px rgba(248, 113, 113, 0.5),
+                     0 0 8px rgba(251, 191, 36, 0.4),
+                     0 0 12px rgba(90, 8, 102, 0.3);
+        opacity: 0.95;
+    }
+}
+
+.title-glow {
+    font-family: 'Pirata One', cursive; /* Ensure font is loaded */
+    /* Apply animation - adjust color variables if needed */
+    animation: text-flicker 3s linear infinite alternate;
+    color: var(--color-primary); /* Base color */
+}
+
+/* --- Breathing/Glow Effect for Grid Cards --- */
+@keyframes breathe-glow {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2), 0 0 3px 0px var(--breathe-glow-color, rgba(255, 255, 255, 0.1));
+    border-color: transparent;
+  }
+  50% {
+    transform: scale(1.03);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3), 0 0 10px 2px var(--breathe-glow-color, rgba(251, 191, 36, 0.5)); /* Use accent as fallback */
+    border-color: var(--breathe-glow-color, var(--color-accent));
+  }
+}
+
+.pokedex-grid-card.breathing {
+  animation: breathe-glow 4s ease-in-out infinite;
+  border: 1px solid transparent; /* Ensure border exists for animation */
+}
+
+/* --- Colored Tabs/Filters --- */
+/* Base style (assuming defined in dex.css or here) */
+.gen-tab-button, .type-filter-button {
+    /* Add base styles if not in dex.css */
+    background-color: var(--color-bg-light-panel);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    padding: 0.375rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    --dynamic-color: var(--color-text-secondary); /* Default variable */
+    --dynamic-border-color: var(--color-border);
+}
+.gen-tab-button:hover, .type-filter-button:hover {
+    background-color: var(--color-bg-panel);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-light);
+}
+
+/* Active state uses dynamic variables set by CSS data attributes */
+.gen-tab-button.active, .type-filter-button.active {
+    color: white;
+    font-weight: 600;
+    border-color: var(--dynamic-border-color);
+    background-color: var(--dynamic-color);
+    box-shadow: 0 0 5px 0px var(--dynamic-color); /* Glow effect */
+}
+
+/* Assign dynamic colors via data attributes */
+.type-filter-button[data-type="fire"] { --dynamic-color: var(--type-fire); --dynamic-border-color: var(--type-fire); }
+.type-filter-button[data-type="water"] { --dynamic-color: var(--type-water); --dynamic-border-color: var(--type-water); }
+.type-filter-button[data-type="grass"] { --dynamic-color: var(--type-grass); --dynamic-border-color: var(--type-grass); }
+.type-filter-button[data-type="electric"] { --dynamic-color: var(--type-electric); --dynamic-border-color: var(--type-electric); }
+.type-filter-button[data-type="ice"] { --dynamic-color: var(--type-ice); --dynamic-border-color: var(--type-ice); }
+.type-filter-button[data-type="fighting"] { --dynamic-color: var(--type-fighting); --dynamic-border-color: var(--type-fighting); }
+.type-filter-button[data-type="poison"] { --dynamic-color: var(--type-poison); --dynamic-border-color: var(--type-poison); }
+.type-filter-button[data-type="ground"] { --dynamic-color: var(--type-ground); --dynamic-border-color: var(--type-ground); }
+.type-filter-button[data-type="flying"] { --dynamic-color: var(--type-flying); --dynamic-border-color: var(--type-flying); }
+.type-filter-button[data-type="psychic"] { --dynamic-color: var(--type-psychic); --dynamic-border-color: var(--type-psychic); }
+.type-filter-button[data-type="bug"] { --dynamic-color: var(--type-bug); --dynamic-border-color: var(--type-bug); }
+.type-filter-button[data-type="rock"] { --dynamic-color: var(--type-rock); --dynamic-border-color: var(--type-rock); }
+.type-filter-button[data-type="ghost"] { --dynamic-color: var(--type-ghost); --dynamic-border-color: var(--type-ghost); }
+.type-filter-button[data-type="dragon"] { --dynamic-color: var(--type-dragon); --dynamic-border-color: var(--type-dragon); }
+.type-filter-button[data-type="dark"] { --dynamic-color: var(--type-dark); --dynamic-border-color: var(--type-dark); }
+.type-filter-button[data-type="steel"] { --dynamic-color: var(--type-steel); --dynamic-border-color: var(--type-steel); }
+.type-filter-button[data-type="fairy"] { --dynamic-color: var(--type-fairy); --dynamic-border-color: var(--type-fairy); }
+.type-filter-button[data-type="normal"] { --dynamic-color: var(--type-normal); --dynamic-border-color: var(--type-normal); }
+.type-filter-button[data-type="all"] { --dynamic-color: var(--color-text-secondary); --dynamic-border-color: var(--color-border); }
+
+.gen-tab-button[data-generation="1"] { --dynamic-color: #f87171; --dynamic-border-color: #f87171; }
+.gen-tab-button[data-generation="2"] { --dynamic-color: #fbbf24; --dynamic-border-color: #fbbf24; }
+.gen-tab-button[data-generation="3"] { --dynamic-color: #4ade80; --dynamic-border-color: #4ade80; }
+.gen-tab-button[data-generation="4"] { --dynamic-color: #60a5fa; --dynamic-border-color: #60a5fa; }
+.gen-tab-button[data-generation="5"] { --dynamic-color: #a855f7; --dynamic-border-color: #a855f7; }
+.gen-tab-button[data-generation="6"] { --dynamic-color: #ec4899; --dynamic-border-color: #ec4899; }
+.gen-tab-button[data-generation="7"] { --dynamic-color: #f97316; --dynamic-border-color: #f97316; }
+.gen-tab-button[data-generation="8"] { --dynamic-color: #14b8a6; --dynamic-border-color: #14b8a6; }
+.gen-tab-button[data-generation="9"] { --dynamic-color: #8b5cf6; --dynamic-border-color: #8b5cf6; }
+.gen-tab-button[data-generation="all"] { --dynamic-color: #6b7280; --dynamic-border-color: #6b7280; }
+
+/* --- Enhanced Generator Button --- */
+#random-pokemon-button.generator-button-enhanced {
+    background-color: var(--color-accent);
+    color: var(--color-bg-dark);
+    font-weight: 600;
+    padding: 0.7rem 1.4rem; /* Increased padding */
+    border: none;
+    border-radius: 0.5rem; /* More rounded */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem; /* Increased gap */
+    flex-shrink: 0;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.25);
+    font-size: 0.95rem; /* Slightly larger font */
+}
+
+#random-pokemon-button.generator-button-enhanced:hover {
+    background-color: #eab308; /* Darker accent */
+    transform: translateY(-2px);
+    box-shadow: 0 5px 10px rgba(0,0,0,0.3);
+}
+
+#random-pokemon-button.generator-button-enhanced i {
+    font-size: 1rem; /* Adjust icon size if needed */
+    opacity: 0.8;
+}
+#random-pokemon-button.generator-button-enhanced .fa-dice {
+    font-size: 1.1rem; /* Make dice slightly bigger */
+    opacity: 1;
+}
+
+/* --- Mobile Grid Layouts (from mobile.css) --- */
+/* These override the default grid settings on specific screen sizes */
+@media screen and (max-width: 767px) and (orientation: portrait) {
+    #pokedex-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+}
+@media screen and (max-height: 767px) and (orientation: landscape) {
+     #pokedex-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.75rem; }
+}
+@media screen and (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+     #pokedex-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media screen and (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+     #pokedex-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+}
+
+/* --- Custom Styles (from custom.css - Add if needed) --- */
+/* .access-button { ... } */
+/* .fancy-card-actions { ... } */
+
+/* --- Keyframes --- */
+@keyframes spin { to { transform: rotate(360deg); } }

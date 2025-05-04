@@ -19,30 +19,47 @@ document.addEventListener('DOMContentLoaded', () => {
         loadInitialGrid();
         
         // Hide loading overlay and show the app
-        setTimeout(() => {
-            document.getElementById('initial-loading-overlay').classList.add('loaded');
-            document.getElementById('app-container').classList.remove('hidden');
-        }, 500);
+        showApp();
         
         console.log("Pokedex App Initialized and Ready!");
     }).catch(error => {
         console.error("Error initializing app:", error);
         
         // Still hide the loading overlay even if there's an error
-        document.getElementById('initial-loading-overlay').classList.add('loaded');
-        document.getElementById('app-container').classList.remove('hidden');
+        showApp();
         
         // Show an error message
-        const gridContainer = document.getElementById('pokedex-grid');
-        if (gridContainer) {
-            gridContainer.innerHTML = `
-                <p class="text-center text-[var(--color-error)] p-4">
-                    An error occurred while initializing the app. Please try refreshing the page.
-                </p>
-            `;
-        }
+        showInitializationError();
     });
 });
+
+// --- Helper Functions ---
+
+// Show the application and hide loading overlay
+function showApp() {
+    const initialLoadingOverlay = document.getElementById('initial-loading-overlay');
+    const appContainer = document.getElementById('app-container');
+    
+    if (initialLoadingOverlay) {
+        initialLoadingOverlay.classList.add('loaded');
+    }
+    
+    if (appContainer) {
+        appContainer.classList.remove('hidden');
+    }
+}
+
+// Show initialization error
+function showInitializationError() {
+    const gridContainer = document.getElementById('pokedex-grid');
+    if (gridContainer) {
+        gridContainer.innerHTML = `
+            <p class="text-center text-[var(--color-error)] p-4">
+                An error occurred while initializing the app. Please try refreshing the page.
+            </p>
+        `;
+    }
+}
 
 // --- Module Initialization ---
 async function initializeModules() {
@@ -51,7 +68,7 @@ async function initializeModules() {
         // Some modules depend on others, so order matters
         
         // 1. Initialize Grid Module
-        if (window.DexApp.DexGrid && window.DexApp.DexGrid.initialize) {
+        if (window.DexApp.DexGrid && typeof window.DexApp.DexGrid.initialize === 'function') {
             window.DexApp.DexGrid.initialize();
             console.log("Grid module initialized.");
         } else {
@@ -59,7 +76,7 @@ async function initializeModules() {
         }
         
         // 2. Initialize Detail View Module
-        if (window.DexApp.DetailView && window.DexApp.DetailView.initialize) {
+        if (window.DexApp.DetailView && typeof window.DexApp.DetailView.initialize === 'function') {
             window.DexApp.DetailView.initialize();
             console.log("Detail View module initialized.");
         } else {
@@ -67,7 +84,7 @@ async function initializeModules() {
         }
         
         // 3. Initialize TCG Module
-        if (window.DexApp.TCG && window.DexApp.TCG.initialize) {
+        if (window.DexApp.TCG && typeof window.DexApp.TCG.initialize === 'function') {
             window.DexApp.TCG.initialize();
             console.log("TCG module initialized.");
         } else {
@@ -75,7 +92,7 @@ async function initializeModules() {
         }
         
         // 4. Initialize Generator Module (if available)
-        if (window.DexApp.Generator && window.DexApp.Generator.initialize) {
+        if (window.DexApp.Generator && typeof window.DexApp.Generator.initialize === 'function') {
             window.DexApp.Generator.initialize();
             console.log("Generator module initialized.");
         } else {
@@ -83,7 +100,7 @@ async function initializeModules() {
         }
         
         // 5. Fetch TCG sets for dropdown (can happen in the background)
-        if (window.DexApp.API && window.DexApp.API.fetchTcgSets) {
+        if (window.DexApp.API && typeof window.DexApp.API.fetchTcgSets === 'function') {
             window.DexApp.API.fetchTcgSets().catch(e => 
                 console.warn('Failed to fetch TCG sets:', e)
             );
@@ -108,7 +125,7 @@ async function loadInitialGrid() {
         // Fetch the Pokémon list and display the grid
         const initialList = await window.DexApp.API.fetchGenerationList(currentGeneration);
         
-        if (window.DexApp.DexGrid && window.DexApp.DexGrid.displayDexGrid) {
+        if (window.DexApp.DexGrid && typeof window.DexApp.DexGrid.displayDexGrid === 'function') {
             await window.DexApp.DexGrid.displayDexGrid(initialList);
         } else {
             console.error("Grid display function not found!");
@@ -140,7 +157,11 @@ function setupSearch() {
         mainSearchButton.addEventListener('click', () => {
             const searchTerm = mainSearchInput.value.trim();
             if (searchTerm) {
-                window.DexApp.DetailView.fetchAndDisplayDetailData(searchTerm);
+                if (window.DexApp.DetailView && typeof window.DexApp.DetailView.fetchAndDisplayDetailData === 'function') {
+                    window.DexApp.DetailView.fetchAndDisplayDetailData(searchTerm);
+                } else {
+                    console.error("Detail view function not found!");
+                }
             }
         });
         
@@ -149,7 +170,11 @@ function setupSearch() {
             if (event.key === 'Enter') {
                 const searchTerm = mainSearchInput.value.trim();
                 if (searchTerm) {
-                    window.DexApp.DetailView.fetchAndDisplayDetailData(searchTerm);
+                    if (window.DexApp.DetailView && typeof window.DexApp.DetailView.fetchAndDisplayDetailData === 'function') {
+                        window.DexApp.DetailView.fetchAndDisplayDetailData(searchTerm);
+                    } else {
+                        console.error("Detail view function not found!");
+                    }
                 }
             }
         });

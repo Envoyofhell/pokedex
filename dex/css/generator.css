@@ -1,0 +1,536 @@
+/* Generator Styles */
+.generator-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 9000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+}
+
+.generator-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+    transition-delay: 0s;
+}
+
+.generator-container {
+    background-color: var(--color-bg-panel);
+    border-radius: 0.75rem;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(90, 8, 102, 0.4);
+    width: 90vw;
+    max-width: 70rem;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    transform: scale(0.95);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.generator-overlay.visible .generator-container {
+    transform: scale(1);
+    opacity: 1;
+}
+
+.generator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1.25rem;
+    background-color: rgba(0, 0, 0, 0.3);
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.generator-title {
+    color: var(--color-primary);
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.generator-close {
+    background-color: transparent;
+    color: var(--color-text-secondary);
+    border: none;
+    border-radius: 50%;
+    width: 2rem;
+    height: 2rem;
+    font-size: 1.2rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.generator-close:hover {
+    background-color: var(--color-error);
+    color: white;
+    transform: rotate(90deg);
+}
+
+.generator-body {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem;
+    overflow-y: auto;
+    max-height: calc(90vh - 4rem);
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-secondary) rgba(0,0,0,0.1);
+}
+
+.generator-body::-webkit-scrollbar {
+    width: 6px;
+}
+
+.generator-body::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.1);
+}
+
+.generator-body::-webkit-scrollbar-thumb {
+    background-color: var(--color-secondary);
+    border-radius: 3px;
+}
+
+.generator-form {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+@media (min-width: 768px) {
+    .generator-form {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+.form-section {
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 0.5rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border);
+}
+
+.form-section h3 {
+    margin-top: 0;
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.4rem;
+}
+
+.generator-checkbox {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    user-select: none;
+    color: var(--color-text-secondary);
+}
+
+.generator-checkbox input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: relative;
+    display: inline-block;
+    height: 16px;
+    width: 16px;
+    background-color: rgba(0,0,0,0.2);
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    margin-right: 8px;
+    transition: all 0.2s ease;
+}
+
+.generator-checkbox:hover input ~ .checkmark {
+    background-color: rgba(255,255,255,0.1);
+}
+
+.generator-checkbox input:checked ~ .checkmark {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.generator-checkbox input:checked ~ .checkmark:after {
+    display: block;
+}
+
+.generator-checkbox .checkmark:after {
+    left: 5px;
+    top: 1px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.generator-select {
+    width: 100%;
+    background-color: rgba(0,0,0,0.2);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a0aec0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    background-position: right 0.5rem center;
+    background-repeat: no-repeat;
+    background-size: 1em 1em;
+    cursor: pointer;
+    margin-bottom: 0.75rem;
+}
+
+.generator-select:focus {
+    outline: none;
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 1px var(--color-focus);
+}
+
+.count-container {
+    margin-bottom: 0.75rem;
+}
+
+.count-container label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    color: var(--color-text-secondary);
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+}
+
+@media (min-width: 1024px) {
+    .checkbox-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.generator-submit-button {
+    width: 100%;
+    background-color: var(--color-primary);
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.generator-submit-button:hover {
+    background-color: var(--color-secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.generator-submit-button:active {
+    transform: translateY(0);
+}
+
+.generator-submit-button i {
+    font-size: 1.1rem;
+}
+
+.generator-results-container {
+    margin-top: 1.5rem;
+}
+
+.generator-results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.generator-pokemon-card {
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    padding: 0.75rem;
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.2);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    background-image: linear-gradient(to bottom right, var(--card-gradient-color-1, var(--color-bg-light-panel)), var(--card-gradient-color-2, var(--color-bg-panel)));
+}
+
+.generator-pokemon-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 10px var(--card-gradient-color-1, var(--color-accent));
+}
+
+.generator-pokemon-card.shiny {
+    box-shadow: 0 0 10px var(--color-accent), 0 0 20px var(--color-accent);
+}
+
+.generator-pokemon-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+}
+
+.generator-pokemon-card .card-id {
+    background-color: rgba(0, 0, 0, 0.3);
+    font-size: 0.75rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    color: var(--color-text-secondary);
+}
+
+.generator-pokemon-card .shiny-star {
+    color: gold;
+    font-size: 1.1rem;
+    text-shadow: 0 0 5px gold;
+    animation: shinyPulse 2s ease-in-out infinite;
+}
+
+.generator-pokemon-card .card-image-container {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 0.75rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.generator-pokemon-card .card-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+}
+
+.generator-pokemon-card .card-info {
+    margin-top: auto;
+    margin-bottom: 0.75rem;
+}
+
+.generator-pokemon-card .card-name {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin: 0 0 0.2rem 0;
+    color: var(--color-text-primary);
+}
+
+.generator-pokemon-card .card-nature {
+    font-size: 0.75rem;
+    color: var(--color-text-secondary);
+    margin-bottom: 0.4rem;
+    font-style: italic;
+}
+
+.generator-pokemon-card .card-types {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.generator-pokemon-card .card-type {
+    color: white;
+    padding: 0.15rem 0.4rem;
+    border-radius: 5px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.2);
+}
+
+.generator-pokemon-card .card-gender {
+    margin-top: 0.3rem;
+    font-weight: 600;
+    font-size: 0.8rem;
+}
+
+.generator-pokemon-card .card-gender.male {
+    color: #3b82f6;
+}
+
+.generator-pokemon-card .card-gender.female {
+    color: #ec4899;
+}
+
+.view-dex-button {
+    background-color: var(--color-secondary);
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: auto;
+}
+
+.view-dex-button:hover {
+    background-color: var(--color-primary);
+}
+
+.generator-history-controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    align-items: center;
+}
+
+.history-nav-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.history-button {
+    background-color: rgba(0,0,0,0.2);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.25rem;
+    padding: 0.3rem 0.6rem;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.history-button:hover:not(:disabled) {
+    background-color: rgba(255,255,255,0.1);
+    border-color: var(--color-border-light);
+    color: var(--color-text-primary);
+}
+
+.history-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.shiny-history {
+    margin-top: 2rem;
+}
+
+.shiny-history h3 {
+    font-size: 1.1rem;
+    color: var(--color-accent);
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 0.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.shiny-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.75rem;
+}
+
+.shiny-card {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background-color: rgba(0,0,0,0.1);
+    border-radius: 0.375rem;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 0 8px var(--color-accent);
+}
+
+.shiny-image {
+    width: 40px;
+    height: 40px;
+    object-fit: contain;
+    filter: drop-shadow(0 0 2px gold);
+}
+
+.shiny-info {
+    flex-grow: 1;
+}
+
+.shiny-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-primary);
+}
+
+.shiny-date {
+    font-size: 0.7rem;
+    color: var(--color-text-secondary);
+}
+
+.clear-shinies-button {
+    background-color: var(--color-error);
+    color: white;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 1rem;
+    align-self: flex-end;
+}
+
+.clear-shinies-button:hover {
+    background-color: #b91c1c;
+}
+
+.no-results, .no-shinies {
+    text-align: center;
+    padding: 2rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+@keyframes shinyPulse {
+    0%, 100% {
+        opacity: 0.7;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+}

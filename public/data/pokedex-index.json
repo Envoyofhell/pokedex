@@ -1,0 +1,14 @@
+{
+  "description": "Index mapping Pokémon generations to their data files.",
+  "generations": {
+    "1": "data/gen1.json",
+    "2": "data/gen2.json",
+    "3": "data/gen3.json",
+    "4": "data/gen4.json",
+    "5": "data/gen5.json",
+    "6": "data/gen6.json",
+    "7": "data/gen7.json",
+    "8": "data/gen8.json",
+    "9": "data/gen9.json"
+  }
+}

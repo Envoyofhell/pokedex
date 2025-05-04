@@ -1,0 +1,145 @@
+/* Loading Animation Styles */
+.initial-loading-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: var(--color-bg-dark);
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.6s ease-out, visibility 0s linear 0.6s;
+}
+
+.initial-loading-overlay.loaded {
+    opacity: 0;
+    visibility: hidden;
+    transition-delay: 0s;
+    pointer-events: none;
+}
+
+.loaderBody {
+    width: 100%;
+    max-width: 30em;
+}
+
+.progress {
+    width: 100%;
+    background-color: var(--color-bg-light-panel);
+    border: 2px solid var(--color-border);
+    position: relative;
+    height: 1.8em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.7em;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.progressBar {
+    width: 100%;
+    background: linear-gradient(120deg, var(--color-primary) 5%, var(--color-secondary) 95%);
+    height: inherit;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: translateX(-100%);
+    animation: loadingAnimation 2s ease-in-out infinite;
+}
+
+.loader-text {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: row;
+    font-weight: bold;
+    color: var(--color-text-primary);
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.element {
+    animation: pulse 1.5s ease-in-out infinite alternate;
+    display: inline-block;
+}
+
+.element:nth-child(n) {
+    animation-delay: calc(var(--index, 1) * 60ms);
+}
+
+/* Loaders for content sections */
+.subsequent-loader {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: rgba(31, 41, 55, 0.5);
+    z-index: 10;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--color-primary);
+    animation: spin 1s ease-in-out infinite;
+    margin-bottom: 0.75rem;
+}
+
+.spinner-sm {
+    width: 24px;
+    height: 24px;
+    border-width: 2px;
+}
+
+/* Animation Keyframes */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.7;
+        transform: scale(1) translateY(0);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05) translateY(-2px);
+    }
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes loadingAnimation {
+    0% {
+        transform: translateX(-100%);
+    }
+    50% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(100%);
+    }
+}
+
+/* Error Message Styles */
+.error-message {
+    background-color: rgba(220, 38, 38, 0.8);
+    padding: 1rem;
+    border-radius: 0.375rem;
+    text-align: center;
+    color: white;
+    font-weight: 500;
+}
+
+.error-subtle {
+    background-color: rgba(220, 38, 38, 0.2);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-error);
+}
