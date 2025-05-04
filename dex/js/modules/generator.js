@@ -411,29 +411,106 @@ window.DexApp.Generator.displayGeneratorResults = function(pokemonList) { /* Unc
     container.appendChild(fragment); this.updateGeneratorHistoryUI();
 };
 
-// --- Create Generator Card Element (using local data structure) ---
-window.DexApp.Generator.createGeneratorResultCard = function(result) { /* Unchanged */
-    const pokemonData = result.pokemon; const card = document.createElement('div');
-    card.className = 'generator-pokemon-card'; card.dataset.pokemonId = pokemonData.id; card.dataset.pokemonName = pokemonData.name;
+// --- Create Generator Result Card ---
+window.DexApp.Generator.createGeneratorResultCard = function(result) {
+    // Log for debugging
+    console.log("Creating generator card for:", result);
+    
+    const pokemonData = result.pokemon; 
+    const card = document.createElement('div');
+    card.className = 'generator-pokemon-card'; 
+    
+    // Make sure we have an ID
+    const pokemonId = pokemonData.id;
+    if (!pokemonId) {
+        console.error("Pokemon ID missing in generator:", pokemonData);
+        return card; // Return empty card if no ID
+    }
+    
+    card.dataset.pokemonId = pokemonId; 
+    card.dataset.pokemonName = pokemonData.name;
     if (result.isShiny) card.classList.add('shiny');
-    let imageUrl = pokemonData.sprite || 'https://placehold.co/96x96/cccccc/ffffff?text=?';
-    let shinyImageUrl = pokemonData.shinySprite || imageUrl; let femaleImageUrl = pokemonData.femaleSprite || imageUrl; let femaleShinyImageUrl = pokemonData.femaleShinySprite || shinyImageUrl;
-    if (result.isShiny) { imageUrl = (result.gender === 'female' && femaleShinyImageUrl) ? femaleShinyImageUrl : shinyImageUrl; }
-    else if (result.gender === 'female' && femaleImageUrl) { imageUrl = femaleImageUrl; }
-    const displayName = window.DexApp.Utils.formatters.formatName(pokemonData.name); const idFormatted = String(pokemonData.id).padStart(3, '0'); const types = pokemonData.types || [];
-    let color1 = 'var(--color-bg-light-panel)', color2 = 'var(--color-bg-panel)'; let primaryTypeColor = 'var(--color-accent)';
-    if (types.length > 0) { const typeName1 = types[0].toLowerCase(); primaryTypeColor = `var(--type-${typeName1}, var(--color-accent))`; color1 = `var(--type-${typeName1}, var(--color-secondary))`; color2 = types.length > 1 ? `var(--type-${types[1].toLowerCase()}, var(--color-primary))` : `var(--type-${typeName1}-light, var(--color-primary))`; }
-    card.style.setProperty('--card-gradient-color-1', color1); card.style.setProperty('--card-gradient-color-2', color2); card.style.setProperty('--dynamic-type-color', primaryTypeColor);
-    card.innerHTML = `<div class="card-header"> <span class="card-id">#${idFormatted}</span> ${result.isShiny ? '<span class="shiny-star" title="Shiny!">★</span>' : ''} </div> <div class="card-image-container"> <img src="${imageUrl}" alt="${displayName}" class="card-image" loading="lazy" onerror="this.onerror=null; this.src='https://placehold.co/96x96/cccccc/ffffff?text=?'"> </div> <div class="card-info"> <h3 class="card-name">${displayName}</h3> <div class="card-nature">${result.nature || ''}</div> <div class="card-types"> ${types.map(type => `<span class="card-type type-${type.toLowerCase()}">${type}</span>`).join('')} </div> ${result.gender ? `<div class="card-gender ${result.gender}" title="${result.gender}">${result.gender === 'male' ? '♂' : '♀'}</div>` : ''} </div> <button class="view-dex-button" data-identifier="${pokemonData.name}" title="View ${displayName} in Pokédex">View Dex</button>`;
+    
+    // ALWAYS use direct URLs to PokeAPI sprites
+    const officialArtworkUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonId}.png`;
+    const normalSpriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonId}.png`;
+    const shinySpriteUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemonId}.png`;
+    
+    // Select the appropriate image based on shiny status
+    const imageUrl = result.isShiny ? shinySpriteUrl : officialArtworkUrl;
+    
+    const displayName = window.DexApp.Utils.formatters.formatName(pokemonData.name);
+    const idFormatted = String(pokemonId).padStart(3, '0');
+    const types = pokemonData.types || [];
+    
+    let color1 = 'var(--color-bg-light-panel)', color2 = 'var(--color-bg-panel)';
+    let primaryTypeColor = 'var(--color-accent)';
+    
+    if (types.length > 0) {
+        const typeName1 = types[0].toLowerCase();
+        primaryTypeColor = `var(--type-${typeName1}, var(--color-accent))`;
+        color1 = `var(--type-${typeName1}, var(--color-secondary))`;
+        color2 = types.length > 1 ? 
+            `var(--type-${types[1].toLowerCase()}, var(--color-primary))` : 
+            `var(--type-${typeName1}-light, var(--color-primary))`;
+    }
+    
+    card.style.setProperty('--card-gradient-color-1', color1);
+    card.style.setProperty('--card-gradient-color-2', color2);
+    card.style.setProperty('--dynamic-type-color', primaryTypeColor);
+    
+    card.innerHTML = `
+        <div class="card-header">
+            <span class="card-id">#${idFormatted}</span>
+            ${result.isShiny ? '<span class="shiny-star" title="Shiny!">★</span>' : ''}
+        </div>
+        <div class="card-image-container">
+            <img src="${imageUrl}" alt="${displayName}" class="card-image" loading="lazy">
+        </div>
+        <div class="card-info">
+            <h3 class="card-name">${displayName}</h3>
+            <div class="card-nature">${result.nature || ''}</div>
+            <div class="card-types">
+                ${types.map(type => `<span class="card-type type-${type.toLowerCase()}">${type}</span>`).join('')}
+            </div>
+            ${result.gender ? `<div class="card-gender ${result.gender}" title="${result.gender}">${result.gender === 'male' ? '♂' : '♀'}</div>` : ''}
+        </div>
+        <button class="view-dex-button" data-identifier="${pokemonData.name}" title="View ${displayName} in Pokédex">View Dex</button>
+    `;
+    
+    // Simple fallback chain for the image
+    const imgElement = card.querySelector('.card-image');
+    if (imgElement) {
+        imgElement.onerror = function() {
+            if (this.src === officialArtworkUrl) {
+                // If official artwork fails, try normal sprite
+                console.log(`Official artwork failed for ${displayName}, trying ${result.isShiny ? 'shiny' : 'normal'} sprite`);
+                this.src = result.isShiny ? shinySpriteUrl : normalSpriteUrl;
+            } else {
+                // If all sprite attempts fail, use placeholder
+                console.log(`All sprites failed for ${displayName}, using placeholder`);
+                this.src = 'https://placehold.co/96x96/cccccc/333333?text=%3F';
+                this.onerror = null; // Stop trying after this
+            }
+        };
+    }
+    
     card.querySelector('.view-dex-button').addEventListener('click', (e) => {
-        e.stopPropagation(); const identifier = e.currentTarget.dataset.identifier;
+        e.stopPropagation();
+        const identifier = e.currentTarget.dataset.identifier;
         if (window.DexApp.Lightbox?.closeGeneratorLightbox) window.DexApp.Lightbox.closeGeneratorLightbox();
-        if (identifier && window.DexApp.DetailView?.fetchAndDisplayDetailData) { setTimeout(() => { window.DexApp.DetailView.fetchAndDisplayDetailData(identifier, 'generator'); }, 150); }
-        else { console.error("Cannot open detail view - function or identifier missing."); }
+        if (identifier && window.DexApp.DetailView?.fetchAndDisplayDetailData) {
+            setTimeout(() => {
+                window.DexApp.DetailView.fetchAndDisplayDetailData(identifier, 'generator');
+            }, 150);
+        }
+        else {
+            console.error("Cannot open detail view - function or identifier missing.");
+        }
     });
+    
     return card;
 };
-
 // --- History & Shiny Functions ---
 window.DexApp.Generator.addToGeneratorHistory = function(pokemonList) { /* Unchanged */
     if (!pokemonList || pokemonList.length === 0) return; const clonedList = pokemonList.map(item => ({ ...item, pokemon: { ...item.pokemon } }));

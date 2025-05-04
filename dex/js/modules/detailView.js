@@ -967,6 +967,9 @@ window.DexApp.DetailView.updatePokemonImage = function() {
     const art = sprites?.other?.['official-artwork']; 
     const home = sprites?.other?.home; 
     
+    // Use a consistent placeholder format
+    const placeholderUrl = 'https://placehold.co/256x256/cccccc/333333?text=%3F';
+    
     // Find the best available sprite based on preferences
     let url = art?.front_default || home?.front_default || sprites?.front_default; 
     
@@ -986,17 +989,78 @@ window.DexApp.DetailView.updatePokemonImage = function() {
         url = home?.front_female || art?.front_female || sprites?.front_female || url;
     }
     
-    // Set the image source
-    img.src = url || 'https://placehold.co/256x256/cccccc/ffffff?text=?'; 
+    // Set the image source with the proper fallback
+    img.src = url || placeholderUrl; 
     
     // Set appropriate alt text
     img.alt = `Image of ${this.state.isShiny ? 'shiny ' : ''}${this.state.isFemale ? 'female ' : ''}${this.state.currentPokemonData.name}`; 
     
-    // Handle image load errors
+    // Handle image load errors with a consistent placeholder
     img.onerror = () => { 
-        img.src = 'https://placehold.co/256x256/cccccc/ffffff?text=?'; 
+        img.src = placeholderUrl; 
         img.alt = `${this.state.currentPokemonData.name} image not found`; 
     }; 
+};
+
+// Also update the switchTab function to ensure text contrast for active tabs
+window.DexApp.DetailView.switchTab = function(clickedTab) { 
+    if (!clickedTab || !this.elements.detailMainTabButtons || !this.elements.detailMainTabContents) return; 
+    const targetId = clickedTab.dataset.tab; 
+    this.elements.detailMainTabButtons.forEach(b => b.classList.remove('active')); 
+    clickedTab.classList.add('active'); 
+    this.updateActiveTabColor(); 
+    this.elements.detailMainTabContents.forEach(c => c.classList.toggle('active', c.id === targetId)); 
+};
+
+// Update the tab color function to ensure text contrast
+window.DexApp.DetailView.updateActiveTabColor = function() { 
+    const activeTab = this.elements.tabs?.querySelector('.tab-button.active'); 
+    if (!activeTab) return; 
+    // Get the dynamic color or use default if not set
+    const darkColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color').trim() || 'var(--color-primary)'; 
+    
+    activeTab.style.backgroundColor = darkColor; 
+    activeTab.style.borderColor = darkColor; 
+    // Always use white text on colored backgrounds for better contrast
+    activeTab.style.color = 'white'; 
+    // Add text shadow for better readability
+    activeTab.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.5)';
+    
+    // Reset other tabs only if we can find them
+    if (this.elements.detailMainTabButtons) {
+        this.elements.detailMainTabButtons.forEach(b => { 
+            if (!b.classList.contains('active')) { 
+                b.style.backgroundColor = ''; 
+                b.style.borderColor = 'transparent'; 
+                b.style.color = ''; 
+                b.style.textShadow = '';
+            } 
+        }); 
+    }
+};
+
+// Update the sub-tab color function for the same reason
+window.DexApp.DetailView.updateActiveSubTabColor = function() { 
+    const activeSubTab = this.elements.gameInfoTabs?.querySelector('.sub-tab-button.active'); 
+    if (!activeSubTab) return; 
+    const darkColor = getComputedStyle(document.documentElement).getPropertyValue('--dynamic-type-color').trim() || 'var(--color-primary)'; 
+    
+    activeSubTab.style.backgroundColor = darkColor; 
+    // Always use white text on colored backgrounds for better contrast
+    activeSubTab.style.color = 'white'; 
+    // Add text shadow for better readability
+    activeSubTab.style.textShadow = '0 1px 1px rgba(0, 0, 0, 0.5)';
+    
+    // Reset other subtabs only if we can find them
+    if (this.elements.detailSubTabButtons) {
+        this.elements.detailSubTabButtons.forEach(b => { 
+            if (!b.classList.contains('active')) { 
+                b.style.backgroundColor = ''; 
+                b.style.color = ''; 
+                b.style.textShadow = '';
+            } 
+        }); 
+    }
 };
 
 window.DexApp.DetailView.toggleShiny = function() { 

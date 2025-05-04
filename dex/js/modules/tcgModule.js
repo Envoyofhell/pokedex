@@ -64,6 +64,9 @@ window.DexApp.TCG.getConstant = function(constantName) {
 // --- Initialize TCG Module ---
 window.DexApp.TCG.initialize = function() {
     console.log("Initializing TCG module...");
+    // Cache DOM elements again if they weren't found initially
+    this.cacheElements();
+    
     // Verify we have the critical DOM elements
     if (!this.elements.tcgLightbox || !this.elements.detailTcgCardsContainer) {
         console.error("TCG module initialization failed: Critical DOM elements missing");
@@ -80,6 +83,27 @@ window.DexApp.TCG.initialize = function() {
     this.setupEventListeners();
     this.populateFilterDropdowns();
     console.log("TCG module initialized.");
+};
+
+// Cache DOM elements (can be called again if needed)
+window.DexApp.TCG.cacheElements = function() {
+    const elements = this.elements;
+    
+    elements.detailTcgSearchInput = document.getElementById('tcg-search');
+    elements.detailTcgSearchButton = document.getElementById('tcg-search-button');
+    elements.detailTcgTypeFilter = document.getElementById('tcg-type-filter');
+    elements.detailTcgRarityFilter = document.getElementById('tcg-rarity-filter');
+    elements.detailTcgSetFilter = document.getElementById('tcg-set-filter');
+    elements.detailTcgLoader = document.getElementById('tcg-loader');
+    elements.detailTcgErrorDiv = document.getElementById('tcg-error');
+    elements.detailTcgErrorText = document.getElementById('tcg-error-text');
+    elements.detailTcgCardsContainer = document.getElementById('tcg-cards-container');
+    
+    elements.tcgLightbox = document.getElementById('tcg-lightbox');
+    elements.lightboxCloseButton = document.getElementById('lightbox-close');
+    elements.lightboxCardName = document.getElementById('lightbox-card-name');
+    elements.lightboxCardImage = document.getElementById('lightbox-card-image');
+    elements.lightboxCardDetails = document.getElementById('lightbox-card-details');
 };
 
 window.DexApp.TCG.setupEventListeners = function() {
@@ -267,7 +291,7 @@ window.DexApp.TCG.displayTcgData = function(cards) {
     container.innerHTML = '';
     
     if (!cards || cards.length === 0) {
-        const hasFilters = this.elements.detailTcgSearchInput.value.trim() || 
+        const hasFilters = (this.elements.detailTcgSearchInput && this.elements.detailTcgSearchInput.value.trim()) || 
                           (this.elements.detailTcgTypeFilter && this.elements.detailTcgTypeFilter.value) || 
                           (this.elements.detailTcgRarityFilter && this.elements.detailTcgRarityFilter.value) || 
                           (this.elements.detailTcgSetFilter && this.elements.detailTcgSetFilter.value);
@@ -337,13 +361,18 @@ window.DexApp.TCG.createTcgCardElement = function(card) {
     cardElement.dataset.cardId = card.id;
     cardElement.addEventListener('click', () => this.openTcgLightbox(card.id));
     
+    // Use consistent placeholder format
+    const placeholderUrl = 'https://placehold.co/100x140/cccccc/333333?text=No+Image';
+    
     const imageElement = document.createElement('img');
-    imageElement.src = card.images?.small || 'https://placehold.co/100x140/cccccc/ffffff?text=No+Img';
+    imageElement.src = card.images?.small || placeholderUrl;
     imageElement.alt = `Image of ${card.name} TCG card`;
     imageElement.className = 'tcg-card-image';
     imageElement.loading = 'lazy';
-    imageElement.onerror = () => {
-        imageElement.src = 'https://placehold.co/100x140/cccccc/ffffff?text=No+Img';
+    
+    // Use consistent error handling with proper placeholder
+    imageElement.onerror = function() {
+        this.src = placeholderUrl;
     };
     
     // Enhanced card details
@@ -409,157 +438,161 @@ return cardElement;
 };
 
 window.DexApp.TCG.toggleSetCollapse = function(headerElement) {
-if (!headerElement) return;
+    if (!headerElement) return;
 
-const contentElement = headerElement.nextElementSibling;
-if (!contentElement) return;
+    const contentElement = headerElement.nextElementSibling;
+    if (!contentElement) return;
 
-const iconElement = headerElement.querySelector('i');
-const isCollapsed = headerElement.classList.toggle('collapsed');
+    const iconElement = headerElement.querySelector('i');
+    const isCollapsed = headerElement.classList.toggle('collapsed');
 
-contentElement.classList.toggle('hidden', isCollapsed);
+    contentElement.classList.toggle('hidden', isCollapsed);
 
-if (iconElement) {
-    iconElement.classList.toggle('fa-chevron-down', !isCollapsed);
-    iconElement.classList.toggle('fa-chevron-right', isCollapsed);
-}
+    if (iconElement) {
+        iconElement.classList.toggle('fa-chevron-down', !isCollapsed);
+        iconElement.classList.toggle('fa-chevron-right', isCollapsed);
+    }
 };
 
 // --- TCG Lightbox ---
 window.DexApp.TCG.openTcgLightbox = function(cardId) {
-const card = this.state.currentTcgCards.find(c => c.id === cardId);
-if (!card) return;
+    const card = this.state.currentTcgCards.find(c => c.id === cardId);
+    if (!card) return;
 
-const elements = this.elements;
-if (!elements.tcgLightbox || !elements.lightboxCardName || !elements.lightboxCardImage || !elements.lightboxCardDetails) {
-    console.error("TCG lightbox elements missing!");
-    return;
-}
-
-elements.lightboxCardName.textContent = card.name;
-
-elements.lightboxCardImage.src = card.images?.large || 
-                                  card.images?.small || 
-                                  'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
-                                  
-elements.lightboxCardImage.alt = `Large image of ${card.name}`;
-
-elements.lightboxCardImage.onerror = () => {
-    elements.lightboxCardImage.src = 'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
-};
-
-// Build detailed card info
-let detailsHtml = `
-    <p><strong>Set:</strong> ${card.set?.name || 'N/A'} (${card.set?.series || 'N/A'})</p>
-    <p><strong>Card #:</strong> ${card.number || 'N/A'} / ${card.set?.printedTotal || card.set?.total || 'N/A'}</p>
-`;
-
-if (card.hp) detailsHtml += `<p><strong>HP:</strong> ${card.hp}</p>`;
-if (card.types?.length) detailsHtml += `<p><strong>Type(s):</strong> ${card.types.join(', ')}</p>`;
-if (card.rarity) detailsHtml += `<p><strong>Rarity:</strong> ${card.rarity}</p>`;
-if (card.artist) detailsHtml += `<p><strong>Artist:</strong> ${card.artist}</p>`;
-
-// Display attacks
-if (card.attacks?.length) {
-    detailsHtml += `<h4 class="lightbox-detail-title">Attacks</h4>`;
-    card.attacks.forEach(attack => {
-        let costHtml = attack.cost?.map(type => 
-            `<span class="tcg-cost-icon tcg-type-${type}" title="${type}"></span>`
-        ).join('') || '(No Cost)';
-        
-        detailsHtml += `
-            <div class="lightbox-attack">
-                <p>
-                    <strong>${attack.name}</strong> ${costHtml} 
-                    ${attack.damage ? `<span class="float-right font-bold">${attack.damage}</span>` : ''}
-                </p>
-                ${attack.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${attack.text}</p>` : ''}
-            </div>
-        `;
-    });
-}
-
-// Display abilities
-if (card.abilities?.length) {
-    detailsHtml += `<h4 class="lightbox-detail-title">Abilities</h4>`;
-    card.abilities.forEach(ability => {
-        detailsHtml += `
-            <div class="lightbox-ability">
-                <p><strong>${ability.name}</strong> (${ability.type})</p>
-                ${ability.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${ability.text}</p>` : ''}
-            </div>
-        `;
-    });
-}
-
-// Display combat info
-detailsHtml += `<h4 class="lightbox-detail-title">Combat Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
-detailsHtml += `<div><strong>Weakness:</strong> ${card.weaknesses ? card.weaknesses.map(w => `${w.type} ${w.value}`).join(', ') : 'None'}</div>`;
-detailsHtml += `<div><strong>Resistance:</strong> ${card.resistances ? card.resistances.map(r => `${r.type} ${r.value}`).join(', ') : 'None'}</div>`;
-detailsHtml += `<div><strong>Retreat:</strong> ${card.retreatCost ? card.retreatCost.join(', ') : '0'}</div></div>`;
-
-// Display legality info if available
-if (card.legalities) {
-    detailsHtml += `<h4 class="lightbox-detail-title">Legality Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
-    for (const [format, status] of Object.entries(card.legalities)) {
-        const statusClass = status === 'Legal' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]';
-        detailsHtml += `<div><strong>${format}:</strong> <span class="${statusClass}">${status}</span></div>`;
+    const elements = this.elements;
+    if (!elements.tcgLightbox || !elements.lightboxCardName || !elements.lightboxCardImage || !elements.lightboxCardDetails) {
+        console.error("TCG lightbox elements missing!");
+        return;
     }
-    detailsHtml += `</div>`;
-}
 
-elements.lightboxCardDetails.innerHTML = detailsHtml;
+    elements.lightboxCardName.textContent = card.name;
+    
+    // Use consistent placeholder format
+    const placeholderUrl = 'https://placehold.co/300x420/cccccc/333333?text=No+Large+Image';
+    
+    elements.lightboxCardImage.src = card.images?.large || 
+                                    card.images?.small || 
+                                    placeholderUrl;
+                                    
+    elements.lightboxCardImage.alt = `Large image of ${card.name}`;
 
-// Check if Lightbox utility is available or use basic class toggle
-if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.openTcgLightbox === 'function') {
-    window.DexApp.Lightbox.openTcgLightbox(card);
-} else {
-    console.warn("Lightbox utility not found, using basic class toggle");
-    elements.tcgLightbox.classList.add('visible');
-    document.body.style.overflow = 'hidden';
-}
+    // Consistent error handling
+    elements.lightboxCardImage.onerror = function() {
+        this.src = placeholderUrl;
+    };
+
+    // Build detailed card info
+    let detailsHtml = `
+        <p><strong>Set:</strong> ${card.set?.name || 'N/A'} (${card.set?.series || 'N/A'})</p>
+        <p><strong>Card #:</strong> ${card.number || 'N/A'} / ${card.set?.printedTotal || card.set?.total || 'N/A'}</p>
+    `;
+
+    if (card.hp) detailsHtml += `<p><strong>HP:</strong> ${card.hp}</p>`;
+    if (card.types?.length) detailsHtml += `<p><strong>Type(s):</strong> ${card.types.join(', ')}</p>`;
+    if (card.rarity) detailsHtml += `<p><strong>Rarity:</strong> ${card.rarity}</p>`;
+    if (card.artist) detailsHtml += `<p><strong>Artist:</strong> ${card.artist}</p>`;
+
+    // Display attacks
+    if (card.attacks?.length) {
+        detailsHtml += `<h4 class="lightbox-detail-title">Attacks</h4>`;
+        card.attacks.forEach(attack => {
+            let costHtml = attack.cost?.map(type => 
+                `<span class="tcg-cost-icon tcg-type-${type}" title="${type}"></span>`
+            ).join('') || '(No Cost)';
+            
+            detailsHtml += `
+                <div class="lightbox-attack">
+                    <p>
+                        <strong>${attack.name}</strong> ${costHtml} 
+                        ${attack.damage ? `<span class="float-right font-bold">${attack.damage}</span>` : ''}
+                    </p>
+                    ${attack.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${attack.text}</p>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    // Display abilities
+    if (card.abilities?.length) {
+        detailsHtml += `<h4 class="lightbox-detail-title">Abilities</h4>`;
+        card.abilities.forEach(ability => {
+            detailsHtml += `
+                <div class="lightbox-ability">
+                    <p><strong>${ability.name}</strong> (${ability.type})</p>
+                    ${ability.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${ability.text}</p>` : ''}
+                </div>
+            `;
+        });
+    }
+
+    // Display combat info
+    detailsHtml += `<h4 class="lightbox-detail-title">Combat Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
+    detailsHtml += `<div><strong>Weakness:</strong> ${card.weaknesses ? card.weaknesses.map(w => `${w.type} ${w.value}`).join(', ') : 'None'}</div>`;
+    detailsHtml += `<div><strong>Resistance:</strong> ${card.resistances ? card.resistances.map(r => `${r.type} ${r.value}`).join(', ') : 'None'}</div>`;
+    detailsHtml += `<div><strong>Retreat:</strong> ${card.retreatCost ? card.retreatCost.length : '0'}</div></div>`;
+
+    // Display legality info if available
+    if (card.legalities) {
+        detailsHtml += `<h4 class="lightbox-detail-title">Legality Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
+        for (const [format, status] of Object.entries(card.legalities)) {
+            const statusClass = status === 'Legal' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]';
+            detailsHtml += `<div><strong>${format}:</strong> <span class="${statusClass}">${status}</span></div>`;
+        }
+        detailsHtml += `</div>`;
+    }
+
+    elements.lightboxCardDetails.innerHTML = detailsHtml;
+
+    // Check if Lightbox utility is available or use basic class toggle
+    if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.openTcgLightbox === 'function') {
+        window.DexApp.Lightbox.openTcgLightbox(card);
+    } else {
+        console.warn("Lightbox utility not found, using basic class toggle");
+        elements.tcgLightbox.classList.add('visible');
+        document.body.style.overflow = 'hidden';
+    }
 };
 
 window.DexApp.TCG.closeTcgLightbox = function() {
-const elements = this.elements;
-if (!elements.tcgLightbox) {
-    console.error("TCG lightbox element missing!");
-    return;
-}
+    const elements = this.elements;
+    if (!elements.tcgLightbox) {
+        console.error("TCG lightbox element missing!");
+        return;
+    }
 
-// Check if Lightbox utility is available or use basic class toggle
-if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.closeTcgLightbox === 'function') {
-    window.DexApp.Lightbox.closeTcgLightbox();
-} else {
-    console.warn("Lightbox utility not found, using basic class toggle");
-    elements.tcgLightbox.classList.remove('visible');
-    document.body.style.overflow = '';
-}
+    // Check if Lightbox utility is available or use basic class toggle
+    if (window.DexApp.Lightbox && typeof window.DexApp.Lightbox.closeTcgLightbox === 'function') {
+        window.DexApp.Lightbox.closeTcgLightbox();
+    } else {
+        console.warn("Lightbox utility not found, using basic class toggle");
+        elements.tcgLightbox.classList.remove('visible');
+        document.body.style.overflow = '';
+    }
 
-if (elements.lightboxCardImage) {
-    elements.lightboxCardImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-}
+    if (elements.lightboxCardImage) {
+        elements.lightboxCardImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    }
 
-if (elements.lightboxCardDetails) {
-    elements.lightboxCardDetails.innerHTML = '<p>Loading details...</p>';
-}
+    if (elements.lightboxCardDetails) {
+        elements.lightboxCardDetails.innerHTML = '<p>Loading details...</p>';
+    }
 };
 
 window.DexApp.TCG.showDetailTcgError = function(message) {
-if (this.elements.detailTcgErrorText) {
-    this.elements.detailTcgErrorText.textContent = message;
-}
+    if (this.elements.detailTcgErrorText) {
+        this.elements.detailTcgErrorText.textContent = message;
+    }
 
-if (this.elements.detailTcgErrorDiv) {
-    this.elements.detailTcgErrorDiv.classList.remove('hidden');
-}
+    if (this.elements.detailTcgErrorDiv) {
+        this.elements.detailTcgErrorDiv.classList.remove('hidden');
+    }
 
-console.error("TCG Error:", message);
+    console.error("TCG Error:", message);
 };
 
 // Add a module-loaded tracking for diagnostics
 if (window.trackScriptLoad) {
-window.trackScriptLoad('tcgModule.js');
+    window.trackScriptLoad('tcgModule.js');
 }
 
-console.log("TCG module loaded with fallback constants.");
+console.log("TCG module loaded with consistent placeholder handling.");

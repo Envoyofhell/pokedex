@@ -161,3 +161,60 @@
 
 /* --- Keyframes --- */
 @keyframes spin { to { transform: rotate(360deg); } }
+/* CSS Fixes for Interactive Pokédex Viewer
+ * These styles will fix the tab coloring and placeholder image issues
+ */
+
+/* Fix 1: Ensure active tabs have proper contrast between background and text */
+#detail-view-lightbox .tab-button.active,
+#detail-view-lightbox .sub-tab-button.active {
+    /* Force white text on colored backgrounds */
+    color: white !important;
+    /* Add text shadow for better readability on light-colored backgrounds */
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Fix 2: Address inconsistent placeholder styling for fallback images */
+.pokemon-card-image[src*="placehold.co"],
+.card-image[src*="placehold.co"],
+#pokemon-image[src*="placehold.co"],
+.tcg-card-image[src*="placehold.co"],
+#lightbox-card-image[src*="placehold.co"] {
+    /* Add consistent styles for all placeholder images */
+    object-fit: contain;
+    padding: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Fix 3: Generator card styles */
+.generator-pokemon-card .card-image[src*="placehold.co"] {
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 0.5rem;
+}
+
+/* Fix 4: Ensure the tab content area has proper contrast */
+.generator-results-tab-button.active {
+    /* Use a more reliable color scheme for tab buttons */
+    background-color: var(--color-primary);
+    color: white;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Fix 5: Ensure TCG card cost icons have proper contrast */
+.tcg-cost-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin: 0 1px;
+    vertical-align: middle;
+    border: 1px solid rgba(0,0,0,0.3);
+}
+
+/* Fix 6: Make placeholder image formatting more robust */
+img[onerror*="placehold.co"] {
+    padding: 0.5rem;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+}

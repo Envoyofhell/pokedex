@@ -1,0 +1,79 @@
+/* CSS Fix for tab contrast issues */
+
+/* Style for active tab buttons in detail view */
+#detail-view-lightbox .tab-button.active,
+#detail-view-lightbox .sub-tab-button.active {
+    /* Make sure text is white on colored background */
+    color: white !important;
+    /* Add text shadow for better readability */
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Style for active tab buttons in generator */
+.generator-results-tab-button.active {
+    color: white;
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+/* Fix for TCG cost icons contrast */
+.tcg-cost-icon {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Fix for image in TCG lightbox */
+#lightbox-card-image {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 0.5rem;
+}
+
+/* Ensure placeholder images have consistent styling */
+img[src*="placehold.co"] {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 8px;
+    object-fit: contain;
+}
+/* 
+ * CSS Fix for Placeholder Images
+ * Add this to your existing CSS files (e.g., dex.css) 
+ */
+
+/* Fix placeholder image display across the app */
+.pokemon-card-image[src*="placehold.co"],
+.card-image[src*="placehold.co"],
+#pokemon-image[src*="placehold.co"],
+.tcg-card-image[src*="placehold.co"],
+#lightbox-card-image[src*="placehold.co"] {
+    /* Apply consistent styling to all placeholder images */
+    object-fit: contain !important;
+    padding: 0.5rem !important;
+    background-color: rgba(255, 255, 255, 0.05) !important;
+    border-radius: 4px !important;
+}
+
+/* Especially important for grid cards */
+.pokedex-grid-card .pokemon-card-img-container img[src*="placehold.co"],
+.generator-pokemon-card .card-image-container img[src*="placehold.co"] {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    padding: 0.5rem !important;
+    max-width: 80% !important;
+    max-height: 80% !important;
+}
+
+/* Fix for tab contrast issues */
+#detail-view-lightbox .tab-button.active,
+#detail-view-lightbox .sub-tab-button.active {
+    /* Make sure text is white on colored background */
+    color: white !important;
+    /* Add text shadow for better readability */
+    text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5) !important;
+}
+
+/* Fix for TCG cost icons contrast */
+.tcg-cost-icon {
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}

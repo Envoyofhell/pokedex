@@ -225,11 +225,28 @@ window.DexApp.API.fetchDetailedPokemonData = async function(identifier) {
             identifier: v.pokemon.name // Raw identifier for potential fetching
         })) || [];
 
+        // Get reliable sprite URLs for all available image types
+        // Note: We are extracting directly from PokeAPI's response for most reliable results
+        const officialArtwork = pokemonData.sprites?.other?.['official-artwork']?.front_default;
+        const normalSprite = pokemonData.sprites?.front_default;
+        const shinySprite = pokemonData.sprites?.front_shiny;
+        const femaleSprite = pokemonData.sprites?.front_female;
+        const femaleShinySprite = pokemonData.sprites?.front_shiny_female;
+        
+        // Fallback URL construction for direct GitHub access if API doesn't provide
+        const fallbackOfficialUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemonData.id}.png`;
+        const fallbackNormalUrl = `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemonData.id}.png`;
+        
         const combinedData = {
             id: pokemonData.id,
             name: pokemonData.name,
             baseName: speciesData.name,
-            sprite: pokemonData.sprites?.other?.home?.front_default || pokemonData.sprites?.other?.['official-artwork']?.front_default || pokemonData.sprites?.front_default || '',
+            // Prioritize artwork, then fallback to direct URLs
+            sprite: officialArtwork || fallbackOfficialUrl,
+            spriteNormal: normalSprite || fallbackNormalUrl,
+            spriteShiny: shinySprite || `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${pokemonData.id}.png`,
+            spriteFemale: femaleSprite,
+            spriteShinyFemale: femaleShinySprite,
             types: pokemonData.types.map(t => t.type.name),
             fullPokemonData: pokemonData,
             fullSpeciesData: speciesData,
@@ -237,7 +254,6 @@ window.DexApp.API.fetchDetailedPokemonData = async function(identifier) {
             hasGenderSprites: pokemonData.sprites?.front_female !== null,
             varieties: varieties,
             cry: pokemonData.cries?.latest || pokemonData.cries?.legacy || null
-            // TODO: Add evolution chain data fetching/processing here if needed for accurate stage filtering
         };
 
         // 5. Cache results by multiple keys for efficiency
