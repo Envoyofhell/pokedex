@@ -1,0 +1,503 @@
+/* dex/css/enhanced.css */
+/* Merged styles from theme.css, custom.css, mobile.css + Enhancements */
+
+/* --- :root Variables (from theme.css) --- */
+:root {
+    /* Main Theme Colors */
+    --color-primary: #f87171;      /* Red accent (Adjust if needed) */
+    --color-secondary: #5a0866;     /* Deep purple (Adjust if needed) */
+    --color-bg-dark: #0f172a;       /* Dark Blue/Slate bg */
+    --color-bg-panel: rgba(17, 24, 39, 0.9); /* Panel bg */
+    --color-bg-light-panel: rgba(30, 41, 59, 0.9); /* Lighter Panel bg */
+    --color-text-primary: #e5e7eb;  /* Light text */
+    --color-text-secondary: #a0aec0; /* Dimmer text */
+    --color-border: rgba(55, 65, 81, 0.5); /* Border color */
+    --color-border-light: rgba(75, 85, 99, 0.7); /* Lighter border */
+    --color-accent: #fbbf24;       /* Accent color (e.g., amber-400) */
+    --color-error: #dc2626;        /* Error color */
+    --color-success: #16a34a;      /* Success color */
+    --color-focus: rgba(99, 102, 241, 0.5); /* Focus ring color */
+    --color-focus-border: rgba(99, 102, 241, 0.7); /* Focus border color */
+
+    /* Type Colors (Add all POKEMON types here) */
+    --type-normal: #A8A77A; --type-normal-light: #d1d1bd;
+    --type-fire: #EE8130; --type-fire-light: #f5b88a;
+    --type-water: #6390F0; --type-water-light: #a3c0f5;
+    --type-electric: #F7D02C; --type-electric-light: #fbeba1;
+    --type-grass: #7AC74C; --type-grass-light: #b3e39b;
+    --type-ice: #96D9D6; --type-ice-light: #cff0ef;
+    --type-fighting: #C22E28; --type-fighting-light: #e08a87;
+    --type-poison: #A33EA1; --type-poison-light: #d093cf;
+    --type-ground: #E2BF65; --type-ground-light: #f0dfa8;
+    --type-flying: #A98FF3; --type-flying-light: #d2c4f9;
+    --type-psychic: #F95587; --type-psychic-light: #fca9c3;
+    --type-bug: #A6B91A; --type-bug-light: #d7e08b;
+    --type-rock: #B6A136; --type-rock-light: #ded390;
+    --type-ghost: #735797; --type-ghost-light: #b1a2c9;
+    --type-dragon: #6F35FC; --type-dragon-light: #ab91fd;
+    --type-dark: #705746; --type-dark-light: #b0a299;
+    --type-steel: #B7B7CE; --type-steel-light: #dedee7;
+    --type-fairy: #D685AD; --type-fairy-light: #ebbad7;
+
+    /* TCG Type Colors */
+    --tcg-type-Colorless: #A8A77A;
+    --tcg-type-Darkness: #705746;
+    --tcg-type-Dragon: #6F35FC;
+    --tcg-type-Fairy: #D685AD;
+    --tcg-type-Fighting: #C22E28;
+    --tcg-type-Fire: #EE8130;
+    --tcg-type-Grass: #7AC74C;
+    --tcg-type-Lightning: #F7D02C;
+    --tcg-type-Metal: #B7B7CE;
+    --tcg-type-Psychic: #F95587;
+    --tcg-type-Water: #6390F0;
+
+    /* Animation Timings */
+    --animation-speed-slow: 0.8s;
+    --animation-speed-normal: 0.5s;
+    --animation-speed-fast: 0.3s;
+}
+
+/* --- Base Styles & Font Imports --- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+/* Optional: Add Pirata One if you use .font-pirata */
+@import url('https://fonts.googleapis.com/css2?family=Pirata+One&display=swap');
+
+body {
+    background-color: var(--color-bg-dark);
+    color: var(--color-text-primary);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    margin: 0;
+    padding: 1rem; /* Basic padding */
+}
+@media (min-width: 768px) {
+    body { padding: 1.5rem; }
+}
+
+.font-pirata { font-family: 'Pirata One', cursive; }
+
+/* --- Base Layout (Adjust if your structure differs) --- */
+.container {
+    background-color: var(--color-bg-panel);
+    color: var(--color-text-secondary);
+    position: relative;
+    z-index: 10;
+    border-radius: 0.75rem;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -2px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+    max-width: 80rem; /* Adjust as needed */
+    margin-left: auto;
+    margin-right: auto;
+}
+@media (min-width: 768px) {
+    .container { padding: 2rem; }
+}
+
+/* --- Header Styling --- */
+header { /* Target the header element */
+    display: flex;
+    flex-wrap: wrap; /* Allow wrapping on small screens */
+    justify-content: space-between;
+    align-items: center; /* Vertically center items */
+    gap: 1rem; /* Space between items */
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+header h1 { /* Target the H1 directly */
+    font-family: 'Pirata One', cursive; /* Fancy font */
+    font-size: 2.25rem; /* Larger size */
+    line-height: 1.1;
+    /* Title Glow Effect (from theme.css) */
+    text-shadow: 0 0 5px rgba(255, 100, 100, 0.7),
+                 0 0 10px rgba(255, 0, 0, 0.6),
+                 0 0 15px rgba(138, 43, 226, 0.5);
+    color: var(--color-primary);
+    margin: 0; /* Remove default margin */
+    animation: text-flicker 3s linear infinite alternate;
+    flex-shrink: 0; /* Prevent title from shrinking too much */
+}
+
+.header-controls { /* Container for search and button */
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* Space between search and button */
+    flex-grow: 1; /* Allow controls to take space */
+    justify-content: flex-end; /* Align to the right */
+}
+
+.search-container { /* Container for the input and search icon */
+    position: relative;
+    flex-grow: 1; /* Allow search to grow */
+    max-width: 320px; /* Max width for search */
+}
+
+#pokemon-search-main {
+    background-color: rgba(30, 41, 59, 0.8); /* bg-slate-800 with opacity */
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem; /* rounded-md */
+    padding: 0.5rem 2.5rem 0.5rem 0.75rem; /* py-2 pl-3 pr-10 */
+    font-size: 0.875rem; /* text-sm */
+    width: 100%; /* Take full width of container */
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#pokemon-search-main:focus {
+    outline: none;
+    border-color: var(--color-focus-border);
+    box-shadow: 0 0 0 2px var(--color-focus);
+}
+
+#search-button-main {
+    position: absolute;
+    right: 0.5rem; /* Adjust as needed */
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-text-secondary);
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+#search-button-main:hover {
+    color: var(--color-accent);
+}
+
+#random-pokemon-button {
+    background-color: var(--color-accent); /* Use accent color */
+    color: var(--color-bg-dark); /* Dark text for contrast */
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.375rem; /* rounded-md */
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex; /* Use inline-flex */
+    align-items: center;
+    gap: 0.5rem;
+    flex-shrink: 0; /* Prevent button from shrinking */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+#random-pokemon-button:hover {
+    background-color: #fbbf24; /* Slightly darker accent */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* Responsive Header Adjustments */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items */
+    }
+    header h1 {
+        font-size: 1.75rem; /* Smaller title */
+        text-align: center;
+    }
+    .header-controls {
+        width: 100%; /* Full width on mobile */
+        justify-content: center; /* Center controls */
+    }
+    .search-container {
+        max-width: none; /* Allow search to take more width */
+    }
+}
+
+/* --- Tab/Filter Styling (Add colors based on type/gen) --- */
+#generation-tabs, #type-filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem; /* Space between buttons */
+    margin-bottom: 1.5rem;
+}
+
+.gen-tab-button, .type-filter-button {
+    background-color: var(--color-bg-light-panel);
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem; /* rounded-md */
+    padding: 0.375rem 1rem; /* py-1.5 px-4 */
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.gen-tab-button:hover, .type-filter-button:hover {
+    background-color: var(--color-bg-panel);
+    color: var(--color-text-primary);
+    border-color: var(--color-border-light);
+}
+
+/* Active state - Color applied by JS */
+.gen-tab-button.active, .type-filter-button.active {
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 0 0 1px var(--dynamic-color, var(--color-primary)); /* Use dynamic color set by JS */
+    border-color: var(--dynamic-color, var(--color-primary));
+    background-color: var(--dynamic-color, var(--color-primary)); /* Use dynamic color */
+}
+
+/* Specific Type Button Backgrounds (Example) */
+.type-filter-button[data-type="fire"] { --dynamic-color: var(--type-fire); }
+.type-filter-button[data-type="water"] { --dynamic-color: var(--type-water); }
+.type-filter-button[data-type="grass"] { --dynamic-color: var(--type-grass); }
+/* Add rules for all types */
+.type-filter-button[data-type="electric"] { --dynamic-color: var(--type-electric); }
+.type-filter-button[data-type="ice"] { --dynamic-color: var(--type-ice); }
+.type-filter-button[data-type="fighting"] { --dynamic-color: var(--type-fighting); }
+.type-filter-button[data-type="poison"] { --dynamic-color: var(--type-poison); }
+.type-filter-button[data-type="ground"] { --dynamic-color: var(--type-ground); }
+.type-filter-button[data-type="flying"] { --dynamic-color: var(--type-flying); }
+.type-filter-button[data-type="psychic"] { --dynamic-color: var(--type-psychic); }
+.type-filter-button[data-type="bug"] { --dynamic-color: var(--type-bug); }
+.type-filter-button[data-type="rock"] { --dynamic-color: var(--type-rock); }
+.type-filter-button[data-type="ghost"] { --dynamic-color: var(--type-ghost); }
+.type-filter-button[data-type="dragon"] { --dynamic-color: var(--type-dragon); }
+.type-filter-button[data-type="dark"] { --dynamic-color: var(--type-dark); }
+.type-filter-button[data-type="steel"] { --dynamic-color: var(--type-steel); }
+.type-filter-button[data-type="fairy"] { --dynamic-color: var(--type-fairy); }
+.type-filter-button[data-type="normal"] { --dynamic-color: var(--type-normal); }
+
+
+/* Specific Gen Button Backgrounds (Example - using primary/secondary) */
+.gen-tab-button[data-generation="1"] { --dynamic-color: var(--color-primary); }
+.gen-tab-button[data-generation="2"] { --dynamic-color: #fbbf24; } /* Gold */
+.gen-tab-button[data-generation="3"] { --dynamic-color: #22c55e; } /* Green */
+.gen-tab-button[data-generation="4"] { --dynamic-color: #60a5fa; } /* Blue */
+.gen-tab-button[data-generation="5"] { --dynamic-color: #a855f7; } /* Purple */
+.gen-tab-button[data-generation="6"] { --dynamic-color: #ec4899; } /* Pink */
+.gen-tab-button[data-generation="7"] { --dynamic-color: #f97316; } /* Orange */
+.gen-tab-button[data-generation="8"] { --dynamic-color: #14b8a6; } /* Teal */
+.gen-tab-button[data-generation="9"] { --dynamic-color: #8b5cf6; } /* Violet */
+.gen-tab-button[data-generation="all"] { --dynamic-color: var(--color-text-secondary); } /* Neutral for 'All' */
+
+
+/* --- Pokédex Grid Styling --- */
+#pokedex-grid {
+    display: grid;
+    gap: 1rem;
+    /* Default columns (adjust as needed, will be overridden by mobile.css) */
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+}
+
+.pokedex-grid-card {
+    background-color: var(--color-bg-light-panel);
+    border-radius: 0.5rem; /* rounded-lg */
+    border: 1px solid transparent; /* Start transparent */
+    padding: 0.75rem; /* p-3 */
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+    /* Apply gradient background based on type (set by JS) */
+    background-image: linear-gradient(to bottom right, var(--card-gradient-color-1, var(--color-bg-light-panel)), var(--card-gradient-color-2, var(--color-bg-panel)));
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.pokedex-grid-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--dynamic-type-color, var(--color-accent)); /* Use type color on hover */
+    box-shadow: 0 6px 12px rgba(0,0,0,0.3), 0 0 8px var(--dynamic-type-color, var(--color-accent));
+}
+
+.pokemon-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    font-size: 0.75rem; /* text-xs */
+    color: var(--color-text-secondary);
+    height: 16px; /* Give it a fixed height */
+}
+
+.variant-indicator {
+    color: var(--color-accent);
+    font-size: 0.8rem;
+    margin-right: 0.25rem; /* Space from ID */
+}
+
+.pokemon-card-id {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 1px 5px;
+    border-radius: 10px;
+}
+
+.pokemon-card-img-container {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 50%;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 0.75rem auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.1);
+}
+
+.pokemon-card-image {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
+    transition: transform 0.2s ease;
+}
+.pokedex-grid-card:hover .pokemon-card-image {
+    transform: scale(1.1);
+}
+
+.pokemon-card-info {
+    margin-top: auto;
+}
+
+.pokemon-card-name {
+    font-size: 0.9rem; /* text-sm */
+    font-weight: 600; /* font-semibold */
+    margin-bottom: 0.25rem;
+    color: var(--color-text-primary);
+    text-transform: capitalize;
+}
+
+.pokemon-card-types {
+    display: flex;
+    justify-content: center;
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.pokemon-card-type {
+    color: white;
+    padding: 0.15rem 0.4rem;
+    border-radius: 5px;
+    font-size: 0.65rem; /* text-[10px] approx */
+    font-weight: 600;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
+    border: 1px solid rgba(0,0,0,0.2);
+    /* Background color set dynamically based on type */
+}
+.pokemon-card-type.type-fire { background-color: var(--type-fire); }
+.pokemon-card-type.type-water { background-color: var(--type-water); }
+/* Add all other type background colors */
+.pokemon-card-type.type-grass { background-color: var(--type-grass); }
+.pokemon-card-type.type-electric { background-color: var(--type-electric); }
+.pokemon-card-type.type-ice { background-color: var(--type-ice); }
+.pokemon-card-type.type-fighting { background-color: var(--type-fighting); }
+.pokemon-card-type.type-poison { background-color: var(--type-poison); }
+.pokemon-card-type.type-ground { background-color: var(--type-ground); }
+.pokemon-card-type.type-flying { background-color: var(--type-flying); }
+.pokemon-card-type.type-psychic { background-color: var(--type-psychic); }
+.pokemon-card-type.type-bug { background-color: var(--type-bug); }
+.pokemon-card-type.type-rock { background-color: var(--type-rock); }
+.pokemon-card-type.type-ghost { background-color: var(--type-ghost); }
+.pokemon-card-type.type-dragon { background-color: var(--type-dragon); }
+.pokemon-card-type.type-dark { background-color: var(--type-dark); }
+.pokemon-card-type.type-steel { background-color: var(--type-steel); }
+.pokemon-card-type.type-fairy { background-color: var(--type-fairy); }
+.pokemon-card-type.type-normal { background-color: var(--type-normal); }
+
+/* --- Breathing Effect --- */
+/* Add your breathing effect CSS here */
+/* Example: */
+@keyframes breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+  50% { transform: scale(1.02); box-shadow: 0 4px 10px rgba(0,0,0,0.3), 0 0 5px var(--dynamic-type-color, var(--color-accent)); }
+}
+.pokedex-grid-card.breathing {
+  animation: breathe 4s ease-in-out infinite;
+}
+/* Apply this class via JS to cards, perhaps randomly or based on focus */
+
+
+/* --- Lightbox Base Styles (Ensure visibility/opacity transitions) --- */
+#detail-view-lightbox, #tcg-lightbox {
+    position: fixed; inset: 0;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+    z-index: 50; /* Ensure it's above main content */
+    display: flex; align-items: center; justify-content: center;
+    padding: 1rem;
+    opacity: 0; visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0s linear 0.3s;
+}
+#detail-view-lightbox.visible, #tcg-lightbox.visible {
+    opacity: 1; visibility: visible; transition-delay: 0s;
+}
+
+/* --- Detail View Lightbox Specifics --- */
+/* Styles from loading.css/generator.css for elements within the detail view */
+/* Ensure classes like .image-toggle-button, .tab-button, .sub-tab-button, */
+/* .stat-bar, .sort-button, .pagination-button etc. are styled */
+/* (These were included in the loading.css example previously) */
+
+/* --- TCG Lightbox Specifics --- */
+/* Ensure classes like .tcg-filter-input, .tcg-set-group, .tcg-card, */
+/* .lightbox-detail-title, .tcg-cost-icon etc. are styled */
+/* (These were included in the loading.css example previously) */
+
+/* --- Mobile Grid Layouts (from mobile.css) --- */
+@media screen and (max-width: 767px) and (orientation: portrait) {
+    #pokedex-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr)); /* 3 columns */
+        gap: 0.75rem;
+    }
+}
+@media screen and (max-height: 767px) and (orientation: landscape) {
+     #pokedex-grid {
+        grid-template-columns: repeat(5, minmax(0, 1fr)); /* 5 columns */
+        gap: 0.75rem;
+    }
+}
+@media screen and (min-width: 768px) and (max-width: 1023px) and (orientation: portrait) {
+     #pokedex-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr)); /* 4 columns */
+    }
+}
+@media screen and (min-width: 768px) and (max-width: 1023px) and (orientation: landscape) {
+     #pokedex-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr)); /* 6 columns */
+    }
+}
+
+/* --- Custom Styles (from custom.css) --- */
+/* Add styles for .access-button, .preview-locked-tab, */
+/* .fancy-card-actions, .fancy-action-button etc. if you use them */
+
+/* --- Utility --- */
+.hidden { display: none !important; }
+
+/* Keyframes (Copied from theme.css) */
+@keyframes text-flicker {
+     0%, 10%, 12%, 20%, 22%, 30%, 32%, 40%, 42%, 50%, 52%, 60%, 62%, 70%, 72%, 80%, 82%, 90%, 92%, 100% {
+         text-shadow: 0 0 5px rgba(255, 100, 100, 0.7), 0 0 10px rgba(255, 0, 0, 0.6), 0 0 15px rgba(138, 43, 226, 0.5);
+         opacity: 1;
+     }
+     11%, 21%, 31%, 41%, 51%, 61%, 71%, 81%, 91% {
+         text-shadow: 0 0 4px rgba(255, 100, 100, 0.5), 0 0 8px rgba(255, 0, 0, 0.4), 0 0 12px rgba(138, 43, 226, 0.3);
+         opacity: 0.95;
+     }
+}
+
+/* Ensure spinner keyframes are present if not in loading.css */
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Ensure other keyframes like slideInLeft, float are present if used */
+@keyframes slideInLeft { from { transform: translateX(-30px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+/* Add any other necessary styles from theme.css/custom.css */
+

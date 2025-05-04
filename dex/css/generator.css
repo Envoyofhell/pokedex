@@ -1,536 +1,297 @@
-/* Generator Styles */
-.generator-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px);
-    z-index: 9000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.4s ease, visibility 0s linear 0.4s;
-}
+/* dex/css/generator.css */
+/* Refreshed styles for the Random Pokémon Generator - v3.1 */
 
-.generator-overlay.visible {
-    opacity: 1;
-    visibility: visible;
-    transition-delay: 0s;
+/* --- Generator Overlay & Container --- */
+.generator-overlay {
+    position: fixed; inset: 0; background-color: rgba(15, 23, 42, 0.9);
+    backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 9000;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; visibility: hidden; transition: opacity 0.4s ease, visibility 0s linear 0.4s;
 }
+.generator-overlay.visible { opacity: 1; visibility: visible; transition-delay: 0s; }
 
 .generator-container {
-    background-color: var(--color-bg-panel);
-    border-radius: 0.75rem;
-    overflow: hidden;
+    background-color: var(--color-bg-panel, #1f2937); border-radius: 0.75rem; overflow: hidden;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 20px rgba(90, 8, 102, 0.4);
-    width: 90vw;
-    max-width: 70rem;
-    max-height: 90vh;
-    display: flex;
-    flex-direction: column;
-    transform: scale(0.95);
-    opacity: 0;
+    width: 95vw; max-width: 80rem; height: 90vh; display: flex; flex-direction: column;
+    border: 1px solid var(--color-border, #4b5563); transform: scale(0.95); opacity: 0;
     transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
 }
-
-.generator-overlay.visible .generator-container {
-    transform: scale(1);
-    opacity: 1;
-}
+.generator-overlay.visible .generator-container { transform: scale(1); opacity: 1; }
 
 .generator-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1.25rem;
-    background-color: rgba(0, 0, 0, 0.3);
-    border-bottom: 1px solid var(--color-border-light);
+    display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1.25rem;
+    background-color: rgba(0, 0, 0, 0.3); border-bottom: 1px solid var(--color-border-light, #6b7280); flex-shrink: 0;
 }
-
-.generator-title {
-    color: var(--color-primary);
-    font-size: 1.25rem;
-    font-weight: 600;
-}
+.generator-title { color: var(--color-primary, #ef4444); font-size: 1.25rem; font-weight: 600; }
 
 .generator-close {
-    background-color: transparent;
-    color: var(--color-text-secondary);
-    border: none;
-    border-radius: 50%;
-    width: 2rem;
-    height: 2rem;
-    font-size: 1.2rem;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: transparent; color: var(--color-text-secondary, #9ca3af); border: none; border-radius: 50%;
+    width: 2rem; height: 2rem; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
     transition: all 0.2s ease;
 }
+.generator-close:hover { background-color: var(--color-error, #dc2626); color: white; transform: rotate(90deg); }
 
-.generator-close:hover {
-    background-color: var(--color-error);
-    color: white;
-    transform: rotate(90deg);
+/* --- Split Body Layout --- */
+.generator-body-split {
+    display: flex; flex-direction: row; flex-grow: 1; overflow: hidden; position: relative;
 }
 
-.generator-body {
-    display: flex;
-    flex-direction: column;
-    padding: 1.5rem;
-    overflow-y: auto;
-    max-height: calc(90vh - 4rem);
+/* Settings Panel (Left) */
+.generator-settings {
+    width: 320px; flex-shrink: 0;
+    display: flex; flex-direction: column; /* Needed for sticky header */
+    overflow: hidden; /* Prevent main panel scroll */
+    background-color: rgba(0,0,0, 0.15);
+    border-right: 1px solid var(--color-border, #4b5563);
+    transition: margin-left 0.35s ease-in-out, width 0.35s ease-in-out, padding 0.35s ease-in-out, border 0.35s ease-in-out;
+    position: relative; /* Keep relative for toggle button */
+}
+
+/* Sticky Header within Settings */
+.settings-sticky-header {
+    padding: 1.5rem 1.5rem 1rem 1.5rem; /* Padding around title and button */
+    flex-shrink: 0; /* Prevent header from shrinking */
+    border-bottom: 1px solid var(--color-border); /* Separator */
+    background-color: rgba(0,0,0, 0.25); /* Slightly different bg for header */
+}
+
+.settings-title {
+    font-size: 1.25rem; /* Increased size */
+    font-weight: 600; color: var(--color-accent);
+    margin-bottom: 1rem; text-align: center;
+    padding-bottom: 0; border-bottom: none; /* Removed border here */
+}
+
+/* Scrollable Content Area within Settings */
+.settings-scrollable-content {
+    flex-grow: 1; /* Take remaining space */
+    overflow-y: auto; /* Enable scrolling ONLY for this part */
+    padding: 1rem 1.5rem 1.5rem 1.5rem; /* Padding for form content */
+    /* Custom Scrollbar */
     scrollbar-width: thin;
-    scrollbar-color: var(--color-secondary) rgba(0,0,0,0.1);
+    scrollbar-color: var(--color-secondary, #f97316) rgba(0,0,0,0.1);
+}
+.settings-scrollable-content::-webkit-scrollbar { width: 6px; }
+.settings-scrollable-content::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 3px; }
+.settings-scrollable-content::-webkit-scrollbar-thumb { background-color: var(--color-secondary, #f97316); border-radius: 3px; }
+
+/* Hideable Settings Panel State */
+.generator-settings.hidden {
+    margin-left: -320px; width: 0; padding: 0; border-right: none;
+}
+/* Also hide content instantly when panel starts closing */
+.generator-settings.hidden .settings-sticky-header,
+.generator-settings.hidden .settings-scrollable-content {
+    visibility: hidden;
 }
 
-.generator-body::-webkit-scrollbar {
-    width: 6px;
+
+/* Toggle Button for Settings */
+.settings-toggle-button {
+    position: absolute; top: 10px; right: -15px; transform: translateY(0); z-index: 10;
+    background-color: var(--color-secondary); color: white; border: 1px solid var(--color-border-light);
+    border-radius: 50%; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: transform 0.3s ease, background-color 0.2s ease, right 0.35s ease-in-out, left 0.35s ease-in-out, top 0.35s ease-in-out, bottom 0.35s ease-in-out; /* Added top/bottom */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+}
+.settings-toggle-button:hover { background-color: var(--color-primary); }
+
+/* Adjust toggle button when panel is hidden (DESKTOP) */
+.generator-settings.hidden .settings-toggle-button {
+     right: auto; /* Unset right */
+     left: 10px; /* Position from left edge of container */
+     transform: rotate(180deg);
 }
 
-.generator-body::-webkit-scrollbar-track {
-    background: rgba(0,0,0,0.1);
+.settings-toggle-button i { transition: transform 0.3s ease; }
+
+/* Results Area (Right) */
+.generator-results-area {
+    flex-grow: 1; padding: 1.5rem; overflow: hidden; display: flex; flex-direction: column; position: relative;
 }
 
-.generator-body::-webkit-scrollbar-thumb {
-    background-color: var(--color-secondary);
-    border-radius: 3px;
-}
+/* --- Generator Form --- */
+.generator-form { display: flex; flex-direction: column; gap: 1rem; }
+.form-section { background-color: rgba(0,0,0,0.1); border-radius: 0.5rem; padding: 1rem; border: 1px solid var(--color-border, #4b5563); }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; border-bottom: 1px solid var(--color-border, #4b5563); padding-bottom: 0.4rem;}
+.section-header h4 { margin: 0; font-size: 0.9rem; font-weight: 600; color: var(--color-accent, #3b82f6); border-bottom: none; padding-bottom: 0; flex-grow: 1; }
+.check-all-button, .uncheck-all-button { background: none; border: 1px solid var(--color-border-light); color: var(--color-text-secondary); font-size: 0.7rem; padding: 0.1rem 0.4rem; border-radius: 3px; cursor: pointer; transition: all 0.2s ease; margin-left: 0.3rem; }
+.check-all-button:hover, .uncheck-all-button:hover { background-color: rgba(255,255,255,0.1); color: var(--color-text-primary); border-color: var(--color-accent); }
 
-.generator-form {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
-}
+/* Checkbox Styling */
+.generator-checkbox { display: flex; align-items: center; margin-bottom: 0.5rem; cursor: pointer; font-size: 0.85rem; user-select: none; color: var(--color-text-secondary, #9ca3af); transition: color 0.2s ease; }
+.generator-checkbox:hover { color: var(--color-text-primary, #f9fafb); }
+.generator-checkbox input { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+.checkmark { position: relative; display: inline-block; height: 16px; width: 16px; background-color: rgba(0,0,0,0.2); border: 1px solid var(--color-border, #4b5563); border-radius: 3px; margin-right: 8px; transition: all 0.2s ease; flex-shrink: 0; }
+.generator-checkbox:hover input ~ .checkmark { background-color: rgba(255,255,255,0.1); }
+.generator-checkbox input:checked ~ .checkmark { background-color: var(--color-primary, #ef4444); border-color: var(--color-primary, #ef4444); }
+.checkmark:after { content: ""; position: absolute; display: none; }
+.generator-checkbox input:checked ~ .checkmark:after { display: block; }
+.generator-checkbox .checkmark:after { left: 5px; top: 1px; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+/* Type Checkmark Borders */
+.checkmark.type-fire { border-color: var(--type-fire); } .generator-checkbox input:checked ~ .checkmark.type-fire { background-color: var(--type-fire); }
+.checkmark.type-water { border-color: var(--type-water); } .generator-checkbox input:checked ~ .checkmark.type-water { background-color: var(--type-water); }
+.checkmark.type-grass { border-color: var(--type-grass); } .generator-checkbox input:checked ~ .checkmark.type-grass { background-color: var(--type-grass); }
+.checkmark.type-electric { border-color: var(--type-electric); } .generator-checkbox input:checked ~ .checkmark.type-electric { background-color: var(--type-electric); }
+.checkmark.type-ice { border-color: var(--type-ice); } .generator-checkbox input:checked ~ .checkmark.type-ice { background-color: var(--type-ice); }
+.checkmark.type-fighting { border-color: var(--type-fighting); } .generator-checkbox input:checked ~ .checkmark.type-fighting { background-color: var(--type-fighting); }
+.checkmark.type-poison { border-color: var(--type-poison); } .generator-checkbox input:checked ~ .checkmark.type-poison { background-color: var(--type-poison); }
+.checkmark.type-ground { border-color: var(--type-ground); } .generator-checkbox input:checked ~ .checkmark.type-ground { background-color: var(--type-ground); }
+.checkmark.type-flying { border-color: var(--type-flying); } .generator-checkbox input:checked ~ .checkmark.type-flying { background-color: var(--type-flying); }
+.checkmark.type-psychic { border-color: var(--type-psychic); } .generator-checkbox input:checked ~ .checkmark.type-psychic { background-color: var(--type-psychic); }
+.checkmark.type-bug { border-color: var(--type-bug); } .generator-checkbox input:checked ~ .checkmark.type-bug { background-color: var(--type-bug); }
+.checkmark.type-rock { border-color: var(--type-rock); } .generator-checkbox input:checked ~ .checkmark.type-rock { background-color: var(--type-rock); }
+.checkmark.type-ghost { border-color: var(--type-ghost); } .generator-checkbox input:checked ~ .checkmark.type-ghost { background-color: var(--type-ghost); }
+.checkmark.type-dragon { border-color: var(--type-dragon); } .generator-checkbox input:checked ~ .checkmark.type-dragon { background-color: var(--type-dragon); }
+.checkmark.type-dark { border-color: var(--type-dark); } .generator-checkbox input:checked ~ .checkmark.type-dark { background-color: var(--type-dark); }
+.checkmark.type-steel { border-color: var(--type-steel); } .generator-checkbox input:checked ~ .checkmark.type-steel { background-color: var(--type-steel); }
+.checkmark.type-fairy { border-color: var(--type-fairy); } .generator-checkbox input:checked ~ .checkmark.type-fairy { background-color: var(--type-fairy); }
+.checkmark.type-normal { border-color: var(--type-normal); } .generator-checkbox input:checked ~ .checkmark.type-normal { background-color: var(--type-normal); }
 
-@media (min-width: 768px) {
-    .generator-form {
-        grid-template-columns: repeat(2, 1fr);
+/* Select Dropdown */
+.generator-select { width: 100%; background-color: rgba(0,0,0,0.2); color: var(--color-text-primary, #f9fafb); border: 1px solid var(--color-border, #4b5563); border-radius: 0.25rem; padding: 0.4rem 0.8rem; font-size: 0.9rem; appearance: none; background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a0aec0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e"); background-position: right 0.5rem center; background-repeat: no-repeat; background-size: 1em 1em; padding-right: 2.5rem; cursor: pointer; transition: border-color 0.2s ease; }
+.generator-select:focus { outline: none; border-color: var(--color-accent, #3b82f6); box-shadow: 0 0 0 1px var(--color-focus, #60a5fa); }
+
+/* Checkbox Grid Layout */
+.checkbox-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem 1rem; }
+@media (max-width: 480px) { .checkbox-grid { grid-template-columns: 1fr; } }
+
+/* Generate Button (in Sticky Header) */
+.generator-submit-button.top-button {
+    width: 100%; background-color: var(--color-primary, #ef4444); color: white; font-weight: 600;
+    padding: 0.75rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.generator-submit-button.top-button:hover { background-color: var(--color-secondary, #f97316); transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+.generator-submit-button.top-button:active { transform: translateY(0); box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+.generator-submit-button.top-button i { font-size: 1.1rem; }
+
+
+/* --- Generator Results Area Styling --- */
+.generator-results-container { flex-grow: 1; display: flex; flex-direction: column; overflow: hidden; }
+.generator-history-controls { display: flex; justify-content: space-between; margin-bottom: 0.75rem; align-items: center; flex-shrink: 0; }
+.generator-history-controls h3 { margin: 0; font-size: 1.1rem; color: var(--color-text-primary); }
+.history-nav-buttons { display: flex; gap: 0.5rem; }
+.history-button { background-color: rgba(0,0,0,0.2); color: var(--color-text-secondary, #9ca3af); border: 1px solid var(--color-border, #4b5563); border-radius: 0.25rem; padding: 0.3rem 0.6rem; font-size: 0.8rem; cursor: pointer; transition: all 0.2s ease; display: flex; align-items: center; gap: 0.3rem; }
+.history-button:hover:not(:disabled) { background-color: rgba(255,255,255,0.1); border-color: var(--color-border-light, #6b7280); color: var(--color-text-primary, #f9fafb); }
+.history-button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Results Grid Container */
+#generator-results {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.75rem;
+    flex-grow: 1; overflow-y: auto; padding: 0.5rem; min-height: 150px;
+    scrollbar-width: thin; scrollbar-color: var(--color-primary, #ef4444) rgba(0,0,0,0.1);
+}
+#generator-results::-webkit-scrollbar { width: 6px; }
+#generator-results::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 3px; }
+#generator-results::-webkit-scrollbar-thumb { background-color: var(--color-primary, #ef4444); border-radius: 3px; }
+
+/* Individual Card Styles */
+.generator-pokemon-card { border-radius: 10px; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); padding: 0.75rem; text-align: center; border: 1px solid rgba(0,0,0,0.2); transition: transform 0.2s ease, box-shadow 0.2s ease; position: relative; overflow: hidden; display: flex; flex-direction: column; background-image: linear-gradient(to bottom right, var(--card-gradient-color-1, var(--color-bg-light-panel)), var(--card-gradient-color-2, var(--color-bg-panel))); align-self: start; }
+.generator-pokemon-card:hover { transform: translateY(-4px); box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 10px var(--dynamic-type-color, var(--color-accent)); border-color: var(--dynamic-type-color, var(--color-accent)); }
+.generator-pokemon-card.shiny { box-shadow: 0 0 10px gold, 0 0 20px gold, inset 0 0 5px rgba(255, 215, 0, 0.5); border-color: gold; }
+.generator-pokemon-card .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; height: 20px; font-size: 0.75rem; }
+.generator-pokemon-card .card-id { background-color: rgba(0, 0, 0, 0.3); padding: 2px 6px; border-radius: 10px; color: var(--color-text-secondary, #9ca3af); }
+.generator-pokemon-card .shiny-star { color: gold; font-size: 1rem; text-shadow: 0 0 5px gold; animation: shinyPulse 2s ease-in-out infinite; }
+.generator-pokemon-card .card-image-container { background-color: rgba(255, 255, 255, 0.1); border-radius: 50%; width: 70px; height: 70px; margin: 0 auto 0.75rem auto; display: flex; align-items: center; justify-content: center; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); flex-shrink: 0; }
+.generator-pokemon-card .card-image { max-width: 90%; max-height: 90%; object-fit: contain; filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3)); }
+.generator-pokemon-card .card-info { margin-top: auto; margin-bottom: 0.5rem; flex-grow: 1; display: flex; flex-direction: column; justify-content: flex-end; }
+.generator-pokemon-card .card-name { font-size: 0.85rem; font-weight: 600; margin: 0 0 0.2rem 0; color: var(--color-text-primary, #f9fafb); line-height: 1.2; word-break: break-word; }
+.generator-pokemon-card .card-nature { font-size: 0.7rem; color: var(--color-text-secondary, #9ca3af); margin-bottom: 0.3rem; font-style: italic; }
+.generator-pokemon-card .card-types { display: flex; justify-content: center; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.25rem; }
+.generator-pokemon-card .card-type { color: white; padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.6rem; font-weight: 600; text-transform: uppercase; text-shadow: 1px 1px 1px rgba(0,0,0,0.3); border: 1px solid rgba(0,0,0,0.2); }
+/* Type Backgrounds */
+.generator-pokemon-card .card-type.type-fire { background-color: var(--type-fire); } .generator-pokemon-card .card-type.type-water { background-color: var(--type-water); } .generator-pokemon-card .card-type.type-grass { background-color: var(--type-grass); } .generator-pokemon-card .card-type.type-electric { background-color: var(--type-electric); } .generator-pokemon-card .card-type.type-ice { background-color: var(--type-ice); } .generator-pokemon-card .card-type.type-fighting { background-color: var(--type-fighting); } .generator-pokemon-card .card-type.type-poison { background-color: var(--type-poison); } .generator-pokemon-card .card-type.type-ground { background-color: var(--type-ground); } .generator-pokemon-card .card-type.type-flying { background-color: var(--type-flying); } .generator-pokemon-card .card-type.type-psychic { background-color: var(--type-psychic); } .generator-pokemon-card .card-type.type-bug { background-color: var(--type-bug); } .generator-pokemon-card .card-type.type-rock { background-color: var(--type-rock); } .generator-pokemon-card .card-type.type-ghost { background-color: var(--type-ghost); } .generator-pokemon-card .card-type.type-dragon { background-color: var(--type-dragon); } .generator-pokemon-card .card-type.type-dark { background-color: var(--type-dark); } .generator-pokemon-card .card-type.type-steel { background-color: var(--type-steel); } .generator-pokemon-card .card-type.type-fairy { background-color: var(--type-fairy); } .generator-pokemon-card .card-type.type-normal { background-color: var(--type-normal); }
+.generator-pokemon-card .card-gender { margin-top: 0.25rem; font-weight: 600; font-size: 0.75rem; }
+.generator-pokemon-card .card-gender.male { color: #3b82f6; } .generator-pokemon-card .card-gender.female { color: #ec4899; }
+.generator-pokemon-card .view-dex-button { background-color: var(--color-secondary, #f97316); color: white; border: none; border-radius: 0.25rem; padding: 0.3rem 0.6rem; font-size: 0.75rem; cursor: pointer; transition: all 0.2s ease; margin-top: 0.5rem; width: 100%; }
+.generator-pokemon-card .view-dex-button:hover { background-color: var(--color-primary, #ef4444); }
+
+/* Placeholders/Error Messages */
+.no-results, .no-shinies { text-align: center; padding: 2rem; color: var(--color-text-secondary, #9ca3af); font-style: italic; grid-column: 1 / -1; }
+#generator-error-message { color: var(--color-error); background-color: rgba(220, 38, 38, 0.15); border: 1px solid var(--color-error); padding: 0.75rem; border-radius: 0.375rem; text-align: center; font-size: 0.9rem; margin-top: 0.5rem; }
+
+/* --- Shiny History --- */
+.shiny-history { margin-top: 1.5rem; border-top: 1px solid var(--color-border, #4b5563); padding-top: 1rem; flex-shrink: 0; }
+.shiny-history h3 { font-size: 1rem; color: var(--color-accent, #3b82f6); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+.shiny-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 0.5rem; margin-bottom: 0.75rem; max-height: 150px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--color-accent, #fbbf24) rgba(0,0,0,0.1); }
+.shiny-list::-webkit-scrollbar { width: 5px; } .shiny-list::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 2px; } .shiny-list::-webkit-scrollbar-thumb { background-color: var(--color-accent, #fbbf24); border-radius: 2px; }
+.shiny-card { display: flex; align-items: center; gap: 0.5rem; background-color: rgba(0,0,0,0.1); border-radius: 0.375rem; padding: 0.4rem 0.6rem; border: 1px solid gold; box-shadow: 0 0 6px rgba(255, 215, 0, 0.4); }
+.shiny-image { width: 30px; height: 30px; object-fit: contain; filter: drop-shadow(0 0 2px gold); flex-shrink: 0; }
+.shiny-info { flex-grow: 1; min-width: 0; }
+.shiny-name { font-size: 0.8rem; font-weight: 600; color: var(--color-text-primary, #f9fafb); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shiny-date { font-size: 0.65rem; color: var(--color-text-secondary, #9ca3af); }
+.shiny-card .view-dex-button { padding: 0.2rem 0.4rem; font-size: 0.65rem; margin-top: 0; width: auto; flex-shrink: 0; }
+.clear-shinies-button { background-color: var(--color-error, #dc2626); color: white; padding: 0.4rem 0.8rem; border: none; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; margin-top: 0.5rem; display: block; margin-left: auto; margin-right: auto; max-width: 180px; }
+.clear-shinies-button:hover { background-color: #b91c1c; }
+
+/* --- Animations --- */
+@keyframes shinyPulse { 0%, 100% { opacity: 0.7; transform: scale(1); } 50% { opacity: 1; transform: scale(1.2); } }
+
+/* Responsive adjustments for generator layout */
+@media (max-width: 768px) {
+    .generator-body-split { flex-direction: column; }
+
+    .generator-settings {
+        width: 100%; border-right: none; border-bottom: 1px solid var(--color-border);
+        max-height: 50vh; /* Limit height when stacked */
+        margin-left: 0 !important;
+        transition: margin-top 0.35s ease-in-out, height 0.35s ease-in-out, padding 0.35s ease-in-out, border 0.35s ease-in-out;
     }
-}
-
-.form-section {
-    background-color: rgba(0,0,0,0.1);
-    border-radius: 0.5rem;
-    padding: 1rem;
-    border: 1px solid var(--color-border);
-}
-
-.form-section h3 {
-    margin-top: 0;
-    margin-bottom: 0.75rem;
-    font-size: 1rem;
-    font-weight: 600;
-    color: var(--color-accent);
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 0.4rem;
-}
-
-.generator-checkbox {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-    cursor: pointer;
-    font-size: 0.9rem;
-    user-select: none;
-    color: var(--color-text-secondary);
-}
-
-.generator-checkbox input {
-    position: absolute;
-    opacity: 0;
-    cursor: pointer;
-    height: 0;
-    width: 0;
-}
-
-.checkmark {
-    position: relative;
-    display: inline-block;
-    height: 16px;
-    width: 16px;
-    background-color: rgba(0,0,0,0.2);
-    border: 1px solid var(--color-border);
-    border-radius: 3px;
-    margin-right: 8px;
-    transition: all 0.2s ease;
-}
-
-.generator-checkbox:hover input ~ .checkmark {
-    background-color: rgba(255,255,255,0.1);
-}
-
-.generator-checkbox input:checked ~ .checkmark {
-    background-color: var(--color-primary);
-    border-color: var(--color-primary);
-}
-
-.checkmark:after {
-    content: "";
-    position: absolute;
-    display: none;
-}
-
-.generator-checkbox input:checked ~ .checkmark:after {
-    display: block;
-}
-
-.generator-checkbox .checkmark:after {
-    left: 5px;
-    top: 1px;
-    width: 4px;
-    height: 8px;
-    border: solid white;
-    border-width: 0 2px 2px 0;
-    transform: rotate(45deg);
-}
-
-.generator-select {
-    width: 100%;
-    background-color: rgba(0,0,0,0.2);
-    color: var(--color-text-primary);
-    border: 1px solid var(--color-border);
-    border-radius: 0.25rem;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.9rem;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a0aec0' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-    background-position: right 0.5rem center;
-    background-repeat: no-repeat;
-    background-size: 1em 1em;
-    cursor: pointer;
-    margin-bottom: 0.75rem;
-}
-
-.generator-select:focus {
-    outline: none;
-    border-color: var(--color-accent);
-    box-shadow: 0 0 0 1px var(--color-focus);
-}
-
-.count-container {
-    margin-bottom: 0.75rem;
-}
-
-.count-container label {
-    display: block;
-    margin-bottom: 0.25rem;
-    font-size: 0.9rem;
-    color: var(--color-text-secondary);
-}
-
-.checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 0.5rem;
-}
-
-@media (min-width: 1024px) {
-    .checkbox-grid {
-        grid-template-columns: repeat(3, 1fr);
+    .generator-settings.hidden {
+        margin-top: calc(-50vh - 1px); /* Slide up, account for border */
+        height: 0;
+        width: 100%;
+        padding-top: 0; padding-bottom: 0;
+        border-bottom: none;
     }
-}
+    .settings-scrollable-content { padding: 1rem; }
+    .settings-sticky-header { padding: 1rem; }
 
-.generator-submit-button {
-    width: 100%;
-    background-color: var(--color-primary);
-    color: white;
-    font-weight: 600;
-    padding: 0.75rem 1rem;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-
-.generator-submit-button:hover {
-    background-color: var(--color-secondary);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-}
-
-.generator-submit-button:active {
-    transform: translateY(0);
-}
-
-.generator-submit-button i {
-    font-size: 1.1rem;
-}
-
-.generator-results-container {
-    margin-top: 1.5rem;
-}
-
-.generator-results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.generator-pokemon-card {
-    border-radius: 10px;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
-    padding: 0.75rem;
-    text-align: center;
-    border: 1px solid rgba(0,0,0,0.2);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    position: relative;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    background-image: linear-gradient(to bottom right, var(--card-gradient-color-1, var(--color-bg-light-panel)), var(--card-gradient-color-2, var(--color-bg-panel)));
-}
-
-.generator-pokemon-card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 10px var(--card-gradient-color-1, var(--color-accent));
-}
-
-.generator-pokemon-card.shiny {
-    box-shadow: 0 0 10px var(--color-accent), 0 0 20px var(--color-accent);
-}
-
-.generator-pokemon-card .card-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 0.5rem;
-}
-
-.generator-pokemon-card .card-id {
-    background-color: rgba(0, 0, 0, 0.3);
-    font-size: 0.75rem;
-    padding: 2px 6px;
-    border-radius: 10px;
-    color: var(--color-text-secondary);
-}
-
-.generator-pokemon-card .shiny-star {
-    color: gold;
-    font-size: 1.1rem;
-    text-shadow: 0 0 5px gold;
-    animation: shinyPulse 2s ease-in-out infinite;
-}
-
-.generator-pokemon-card .card-image-container {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 0.75rem auto;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 1px solid rgba(255,255,255,0.1);
-}
-
-.generator-pokemon-card .card-image {
-    max-width: 90%;
-    max-height: 90%;
-    object-fit: contain;
-    filter: drop-shadow(1px 1px 2px rgba(0,0,0,0.3));
-}
-
-.generator-pokemon-card .card-info {
-    margin-top: auto;
-    margin-bottom: 0.75rem;
-}
-
-.generator-pokemon-card .card-name {
-    font-size: 0.9rem;
-    font-weight: 600;
-    margin: 0 0 0.2rem 0;
-    color: var(--color-text-primary);
-}
-
-.generator-pokemon-card .card-nature {
-    font-size: 0.75rem;
-    color: var(--color-text-secondary);
-    margin-bottom: 0.4rem;
-    font-style: italic;
-}
-
-.generator-pokemon-card .card-types {
-    display: flex;
-    justify-content: center;
-    gap: 0.3rem;
-    margin-top: 0.3rem;
-}
-
-.generator-pokemon-card .card-type {
-    color: white;
-    padding: 0.15rem 0.4rem;
-    border-radius: 5px;
-    font-size: 0.65rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    text-shadow: 1px 1px 1px rgba(0,0,0,0.3);
-    border: 1px solid rgba(0,0,0,0.2);
-}
-
-.generator-pokemon-card .card-gender {
-    margin-top: 0.3rem;
-    font-weight: 600;
-    font-size: 0.8rem;
-}
-
-.generator-pokemon-card .card-gender.male {
-    color: #3b82f6;
-}
-
-.generator-pokemon-card .card-gender.female {
-    color: #ec4899;
-}
-
-.view-dex-button {
-    background-color: var(--color-secondary);
-    color: white;
-    border: none;
-    border-radius: 0.25rem;
-    padding: 0.4rem 0.8rem;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: auto;
-}
-
-.view-dex-button:hover {
-    background-color: var(--color-primary);
-}
-
-.generator-history-controls {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 1.5rem;
-    margin-bottom: 0.75rem;
-    align-items: center;
-}
-
-.history-nav-buttons {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.history-button {
-    background-color: rgba(0,0,0,0.2);
-    color: var(--color-text-secondary);
-    border: 1px solid var(--color-border);
-    border-radius: 0.25rem;
-    padding: 0.3rem 0.6rem;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    gap: 0.3rem;
-}
-
-.history-button:hover:not(:disabled) {
-    background-color: rgba(255,255,255,0.1);
-    border-color: var(--color-border-light);
-    color: var(--color-text-primary);
-}
-
-.history-button:disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.shiny-history {
-    margin-top: 2rem;
-}
-
-.shiny-history h3 {
-    font-size: 1.1rem;
-    color: var(--color-accent);
-    margin-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 0.4rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.shiny-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.75rem;
-}
-
-.shiny-card {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background-color: rgba(0,0,0,0.1);
-    border-radius: 0.375rem;
-    padding: 0.5rem;
-    border: 1px solid var(--color-border);
-    box-shadow: 0 0 8px var(--color-accent);
-}
-
-.shiny-image {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
-    filter: drop-shadow(0 0 2px gold);
-}
-
-.shiny-info {
-    flex-grow: 1;
-}
-
-.shiny-name {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--color-text-primary);
-}
-
-.shiny-date {
-    font-size: 0.7rem;
-    color: var(--color-text-secondary);
-}
-
-.clear-shinies-button {
-    background-color: var(--color-error);
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 0.25rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    margin-top: 1rem;
-    align-self: flex-end;
-}
-
-.clear-shinies-button:hover {
-    background-color: #b91c1c;
-}
-
-.no-results, .no-shinies {
-    text-align: center;
-    padding: 2rem;
-    color: var(--color-text-secondary);
-    font-style: italic;
-}
-
-@keyframes shinyPulse {
-    0%, 100% {
-        opacity: 0.7;
-        transform: scale(1);
+    /* --- Responsive Toggle Button Positioning --- */
+    .settings-toggle-button {
+        /* Default (desktop): Positioned relative to settings panel */
+        top: 10px; right: -15px; left: auto; bottom: auto;
+        transform: translateY(0);
+        transition: transform 0.3s ease, background-color 0.2s ease, right 0.35s ease-in-out, left 0.35s ease-in-out, top 0.35s ease-in-out, bottom 0.35s ease-in-out;
     }
-    50% {
-        opacity: 1;
-        transform: scale(1.2);
+
+    .generator-settings.hidden .settings-toggle-button {
+         /* When hidden (desktop): Position relative to results area */
+        right: auto; /* Unset right */
+        left: 10px; /* Position from left */
+        transform: rotate(180deg);
     }
+
+    /* Mobile (<768px) specific positioning */
+    .generator-body-split { /* Position relative to allow absolute positioning inside */
+        position: relative;
+    }
+     .settings-toggle-button {
+         /* When visible on mobile: Position at bottom center of settings panel */
+         top: auto; bottom: -15px; left: 50%; right: auto;
+         transform: translateX(-50%) rotate(90deg); /* Pointing down */
+     }
+     /* --- FIX: Position button relative to results area when hidden on mobile --- */
+     .generator-body-split > .generator-settings.hidden ~ .generator-results-area .settings-toggle-button, /* Target button within results area when settings are hidden */
+     .generator-settings.hidden .settings-toggle-button /* Fallback if direct sibling doesn't work */
+     {
+         bottom: auto; /* Unset bottom */
+         top: 10px; /* Position near top */
+         left: 10px; /* Position from left */
+         right: auto; /* Unset right */
+         transform: rotate(180deg); /* Pointing right */
+     }
+
+
+    .generator-results-area { padding: 1rem; flex-grow: 1; }
+    #generator-results { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem;}
+    .generator-pokemon-card { padding: 0.5rem; }
+    .generator-pokemon-card .card-image-container { width: 55px; height: 55px; margin-bottom: 0.5rem;}
+    .generator-pokemon-card .card-name { font-size: 0.75rem; }
+    .generator-pokemon-card .card-nature { font-size: 0.6rem; margin-bottom: 0.2rem; }
+    .generator-pokemon-card .card-type { font-size: 0.5rem; padding: 0.1rem 0.25rem;}
+    .generator-pokemon-card .view-dex-button { font-size: 0.65rem; padding: 0.25rem 0.5rem; margin-top: 0.3rem;}
+    .shiny-list { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 }

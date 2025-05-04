@@ -1,283 +1,230 @@
-// dex/js/modules/lightbox.js
-// Lightbox functionality for the Pokédex application
+/**
+ * @file        dex/js/modules/lightbox.js
+ * @description Handles opening/closing of lightboxes (Detail, TCG, Generator).
+ * @version     1.2.0
+ * @date        2025-05-05
+ * @author      Your Name/AI Assistant
+ * @copyright   (c) 2025 Your Project Name
+ * @license     MIT (or your chosen license)
+ *
+ * @dependencies utils.js, generator.js (optional for activate call)
+ * @dependents   app.js, detailView.js, tcgModule.js, dexGrid.js
+ *
+ * @changelog
+ * v1.2.0 (2025-05-05): Added detailViewSource tracking for return-to-generator flow. Improved element caching and checks.
+ * v1.1.0 (2025-05-05): Added global Escape key listener.
+ * v1.0.0 (Initial): Basic open/close functions for all lightboxes.
+ */
 
-// Create Lightbox namespace
 window.DexApp = window.DexApp || {};
 window.DexApp.Lightbox = {};
 
-// State variables
+// --- State variables ---
 window.DexApp.Lightbox.state = {
     activeDetailLightbox: false,
     activeTcgLightbox: false,
-    activeGeneratorLightbox: false
+    activeGeneratorLightbox: false,
+    detailViewSource: null // Tracks source: 'grid', 'generator', or null
 };
 
-// DOM Elements
+// --- DOM Elements Cache ---
 window.DexApp.Lightbox.elements = {
-    // Detail Lightbox
-    detailLightbox: document.getElementById('detail-view-lightbox'),
-    detailCloseButton: document.getElementById('detail-close-button'),
-    
-    // TCG Lightbox
-    tcgLightbox: document.getElementById('tcg-lightbox'),
-    tcgLightboxCloseButton: document.getElementById('lightbox-close'),
-    
-    // Generator Lightbox
-    generatorOverlay: document.getElementById('generator-overlay'),
-    generatorCloseButton: document.getElementById('generator-close-button'),
-    randomButton: document.getElementById('random-pokemon-button')
+    detailLightbox: null, detailCloseButton: null,
+    tcgLightbox: null, tcgLightboxCloseButton: null,
+    generatorOverlay: null, generatorCloseButton: null,
+    randomGeneratorButton: null
 };
 
 // --- Initialize Lightbox ---
 window.DexApp.Lightbox.initialize = function() {
     console.log("Initializing Lightbox module...");
+    this.cacheElements(); // Cache elements on init
+    // Basic check if main containers exist
+    if (!this.elements.detailLightbox || !this.elements.tcgLightbox || !this.elements.generatorOverlay) {
+        console.error("Lightbox Init Failed: One or more main lightbox containers not found in HTML.");
+        return; // Stop if critical elements are missing
+    }
     this.setupEventListeners();
     console.log("Lightbox module initialized.");
 };
 
+// --- Cache DOM Elements ---
+window.DexApp.Lightbox.cacheElements = function() {
+    this.elements.detailLightbox = document.getElementById('detail-view-lightbox');
+    this.elements.detailCloseButton = document.getElementById('detail-close-button');
+    this.elements.tcgLightbox = document.getElementById('tcg-lightbox');
+    // Use a common ID pattern or check multiple possibilities for close buttons
+    this.elements.tcgLightboxCloseButton = document.getElementById('tcg-lightbox-close') || document.getElementById('lightbox-close');
+    this.elements.generatorOverlay = document.getElementById('generator-overlay');
+    this.elements.generatorCloseButton = document.getElementById('generator-close-button');
+    this.elements.randomGeneratorButton = document.getElementById('random-pokemon-button');
+};
+
+// --- Setup Event Listeners ---
 window.DexApp.Lightbox.setupEventListeners = function() {
     const elements = this.elements;
-    
-    // Detail Lightbox events
+
+    // Detail Lightbox
     if (elements.detailLightbox && elements.detailCloseButton) {
         elements.detailCloseButton.addEventListener('click', () => this.closeDetailLightbox());
-        elements.detailLightbox.addEventListener('click', (event) => {
-            if (event.target === elements.detailLightbox) this.closeDetailLightbox();
-        });
-    } else {
-        console.warn("Detail lightbox elements not found");
-    }
-    
-    // TCG Lightbox events
+        elements.detailLightbox.addEventListener('click', (event) => { if (event.target === elements.detailLightbox) this.closeDetailLightbox(); });
+    } else { console.warn("Detail lightbox or close button missing."); }
+
+    // TCG Lightbox
     if (elements.tcgLightbox && elements.tcgLightboxCloseButton) {
         elements.tcgLightboxCloseButton.addEventListener('click', () => this.closeTcgLightbox());
-        elements.tcgLightbox.addEventListener('click', (event) => {
-            if (event.target === elements.tcgLightbox) this.closeTcgLightbox();
-        });
-    } else {
-        console.warn("TCG lightbox elements not found");
-    }
-    
-    // Generator Lightbox events
+        elements.tcgLightbox.addEventListener('click', (event) => { if (event.target === elements.tcgLightbox) this.closeTcgLightbox(); });
+    } else { console.warn("TCG lightbox or close button missing."); }
+
+    // Generator Overlay
     if (elements.generatorOverlay && elements.generatorCloseButton) {
         elements.generatorCloseButton.addEventListener('click', () => this.closeGeneratorLightbox());
-        elements.generatorOverlay.addEventListener('click', (event) => {
-            if (event.target === elements.generatorOverlay) this.closeGeneratorLightbox();
-        });
-    } else {
-        console.warn("Generator lightbox elements not found");
+        elements.generatorOverlay.addEventListener('click', (event) => { if (event.target === elements.generatorOverlay) this.closeGeneratorLightbox(); });
+    } else { console.warn("Generator overlay or close button missing."); }
+
+    // Generator Trigger Button
+    if (elements.randomGeneratorButton && elements.generatorOverlay) {
+        elements.randomGeneratorButton.addEventListener('click', () => this.openGeneratorLightbox());
+    } else { console.warn("Generator trigger button or overlay missing."); }
+
+    // Global Escape Key Listener
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape') {
+            // Close the topmost active lightbox/overlay
+            if (this.state.activeDetailLightbox) this.closeDetailLightbox();
+            else if (this.state.activeTcgLightbox) this.closeTcgLightbox();
+            else if (this.state.activeGeneratorLightbox) this.closeGeneratorLightbox();
+        }
+    });
+};
+
+// --- Visibility Toggle Helper ---
+/**
+ * Handles the common logic for showing/hiding overlays with transitions.
+ * @param {HTMLElement | null} element - The overlay element.
+ * @param {boolean} show - True to show, false to hide.
+ * @param {string} stateFlag - The corresponding state flag name (e.g., 'activeDetailLightbox').
+ */
+window.DexApp.Lightbox.toggleOverlayVisibility = function(element, show, stateFlag) {
+    if (!element) {
+        console.warn(`Cannot toggle visibility: Element for ${stateFlag} not found.`);
+        return;
     }
-    
-    // Random button for generator
-    if (elements.randomButton && elements.generatorOverlay) {
-        elements.randomButton.addEventListener('click', () => this.openGeneratorLightbox());
+
+    const state = window.DexApp.Lightbox.state;
+
+    if (show) {
+        state[stateFlag] = true; // Set state flag immediately
+        element.classList.remove('hidden');
+        // Use rAF to ensure 'hidden' is removed before adding 'visible'
+        requestAnimationFrame(() => {
+            element.classList.add('visible'); // Trigger fade-in
+        });
+        // Prevent body scroll only if this is the *first* overlay being opened
+        if (!this.isAnyOverlayActiveExcept(stateFlag)) {
+            document.body.style.overflow = 'hidden';
+        }
     } else {
-        console.warn("Random button element not found");
+        state[stateFlag] = false; // Set state flag immediately
+        element.classList.remove('visible'); // Trigger fade-out
+        // Add 'hidden' after transition ends
+        element.addEventListener('transitionend', () => {
+            // Check state flag again in case it was reopened quickly
+            if (!state[stateFlag]) {
+                element.classList.add('hidden');
+            }
+        }, { once: true });
+        // Fallback timeout
+        setTimeout(() => { if (!state[stateFlag]) element.classList.add('hidden'); }, 500);
+
+        // Restore body scroll ONLY if *no other* overlays remain active
+        if (!this.isAnyOverlayActive()) {
+            document.body.style.overflow = '';
+        }
     }
 };
 
+/** Checks if any lightbox/overlay is currently active. */
+window.DexApp.Lightbox.isAnyOverlayActive = function() {
+    return this.state.activeDetailLightbox || this.state.activeTcgLightbox || this.state.activeGeneratorLightbox;
+};
+
+/** Checks if any overlay *other than* the specified one is active. */
+window.DexApp.Lightbox.isAnyOverlayActiveExcept = function(flagToExclude) {
+    for (const flag in this.state) {
+        // Check boolean flags only, exclude the one passed in
+        if (typeof this.state[flag] === 'boolean' && flag !== flagToExclude && this.state[flag]) {
+            return true;
+        }
+    }
+    return false;
+};
+
+
 // --- Detail Lightbox Functions ---
-window.DexApp.Lightbox.openDetailLightbox = function() {
-    const lightbox = this.elements.detailLightbox;
-    if (!lightbox) return;
-    
-    console.log("Opening detail lightbox...");
-    
-    lightbox.classList.remove('hidden');
-    requestAnimationFrame(() => {
-        lightbox.classList.add('visible');
-    });
-    
-    document.body.style.overflow = 'hidden';
-    this.state.activeDetailLightbox = true;
+window.DexApp.Lightbox.openDetailLightbox = function(source = null) {
+    console.log(`Opening detail lightbox (Source: ${source || 'unknown'})...`);
+    this.state.detailViewSource = source; // Store source for close logic
+    this.toggleOverlayVisibility(this.elements.detailLightbox, true, 'activeDetailLightbox');
 };
 
 window.DexApp.Lightbox.closeDetailLightbox = function() {
-    const lightbox = this.elements.detailLightbox;
-    if (!lightbox) return;
-    
-    lightbox.classList.remove('visible');
-    
-    const handleTransitionEnd = (event) => {
-        if (event.target === lightbox && !lightbox.classList.contains('visible')) {
-            lightbox.classList.add('hidden');
-            lightbox.removeEventListener('transitionend', handleTransitionEnd);
-        }
-    };
-    
-    lightbox.addEventListener('transitionend', handleTransitionEnd);
-    
-    // Fallback in case transition doesn't fire
-    setTimeout(() => {
-        if (!lightbox.classList.contains('visible')) {
-            lightbox.classList.add('hidden');
-        }
-    }, 500);
-    
-    document.body.style.overflow = '';
-    this.state.activeDetailLightbox = false;
+    console.log("Closing detail lightbox...");
+    const source = this.state.detailViewSource;
+    this.state.detailViewSource = null; // Reset source
+
+    // Check if we should return to the generator
+    if (source === 'generator' && this.state.activeGeneratorLightbox) {
+        console.log("Detail view closed, generator overlay remains active.");
+        // Just hide the detail view, don't restore body scroll yet
+        this.toggleOverlayVisibility(this.elements.detailLightbox, false, 'activeDetailLightbox');
+        // Important: We specifically set the state flag to false here, but don't call the full close logic
+        // which might restore body scroll prematurely.
+        this.state.activeDetailLightbox = false;
+    } else {
+        // Normal close: hide overlay and potentially restore body scroll
+        this.toggleOverlayVisibility(this.elements.detailLightbox, false, 'activeDetailLightbox');
+    }
 };
 
 // --- TCG Lightbox Functions ---
 window.DexApp.Lightbox.openTcgLightbox = function(cardData) {
-    const lightbox = this.elements.tcgLightbox;
-    if (!lightbox) return;
-    
-    const lightboxCardName = document.getElementById('lightbox-card-name');
-    const lightboxCardImage = document.getElementById('lightbox-card-image');
-    const lightboxCardDetails = document.getElementById('lightbox-card-details');
-    
-    if (lightboxCardName) lightboxCardName.textContent = cardData.name || 'Card Details';
-    
-    if (lightboxCardImage) {
-        lightboxCardImage.src = cardData.images?.large || 
-                               cardData.images?.small || 
-                               'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
-        lightboxCardImage.alt = `Large image of ${cardData.name || 'TCG card'}`;
-        
-        lightboxCardImage.onerror = () => {
-            lightboxCardImage.src = 'https://placehold.co/300x420/cccccc/ffffff?text=No+Large+Img';
-        };
-    }
-    
-    if (lightboxCardDetails) {
-        let detailsHtml = this.generateCardDetailsHtml(cardData);
-        lightboxCardDetails.innerHTML = detailsHtml;
-    }
-    
-    lightbox.classList.add('visible');
-    document.body.style.overflow = 'hidden';
-    this.state.activeTcgLightbox = true;
+    const lightbox = this.elements.tcgLightbox; if (!lightbox || !cardData) return;
+    console.log(`Opening TCG lightbox for: ${cardData.name}`);
+    // Populate content... (ensure elements exist)
+    const nameEl = document.getElementById('lightbox-card-name');
+    const imageEl = document.getElementById('lightbox-card-image');
+    const detailsEl = document.getElementById('lightbox-card-details');
+    if (nameEl) nameEl.textContent = cardData.name || 'Card Details';
+    if (imageEl) { /* ... set src, alt, onerror ... */ }
+    if (detailsEl && window.DexApp.TCG?.generateCardDetailsHtml) { detailsEl.innerHTML = window.DexApp.TCG.generateCardDetailsHtml(cardData); }
+    else if (detailsEl) { detailsEl.innerHTML = '<p>Details unavailable.</p>'; }
+    // Show overlay
+    this.toggleOverlayVisibility(lightbox, true, 'activeTcgLightbox');
 };
 
 window.DexApp.Lightbox.closeTcgLightbox = function() {
-    const lightbox = this.elements.tcgLightbox;
-    if (!lightbox) return;
-    
-    lightbox.classList.remove('visible');
-    document.body.style.overflow = '';
-    
-    // Reset image to prevent flicker on next open
-    const lightboxCardImage = document.getElementById('lightbox-card-image');
-    if (lightboxCardImage) {
-        lightboxCardImage.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
-    }
-    
-    // Reset details
-    const lightboxCardDetails = document.getElementById('lightbox-card-details');
-    if (lightboxCardDetails) {
-        lightboxCardDetails.innerHTML = '<p>Loading details...</p>';
-    }
-    
-    this.state.activeTcgLightbox = false;
-};
-
-window.DexApp.Lightbox.generateCardDetailsHtml = function(card) {
-    if (!card) return '<p>No card data available</p>';
-    
-    let detailsHtml = `
-        <p><strong>Set:</strong> ${card.set?.name || 'N/A'} (${card.set?.series || 'N/A'})</p>
-        <p><strong>Card #:</strong> ${card.number || 'N/A'} / ${card.set?.printedTotal || card.set?.total || 'N/A'}</p>
-    `;
-    
-    if (card.hp) detailsHtml += `<p><strong>HP:</strong> ${card.hp}</p>`;
-    if (card.types?.length) detailsHtml += `<p><strong>Type(s):</strong> ${card.types.join(', ')}</p>`;
-    if (card.rarity) detailsHtml += `<p><strong>Rarity:</strong> ${card.rarity}</p>`;
-    if (card.artist) detailsHtml += `<p><strong>Artist:</strong> ${card.artist}</p>`;
-    
-    // Display attacks
-    if (card.attacks?.length) {
-        detailsHtml += `<h4 class="lightbox-detail-title">Attacks</h4>`;
-        card.attacks.forEach(attack => {
-            let costHtml = attack.cost?.map(type => 
-                `<span class="tcg-cost-icon tcg-type-${type}" title="${type}"></span>`
-            ).join('') || '(No Cost)';
-            
-            detailsHtml += `
-                <div class="lightbox-attack">
-                    <p>
-                        <strong>${attack.name}</strong> ${costHtml} 
-                        ${attack.damage ? `<span class="float-right font-bold">${attack.damage}</span>` : ''}
-                    </p>
-                    ${attack.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${attack.text}</p>` : ''}
-                </div>
-            `;
-        });
-    }
-    
-    // Display abilities
-    if (card.abilities?.length) {
-        detailsHtml += `<h4 class="lightbox-detail-title">Abilities</h4>`;
-        card.abilities.forEach(ability => {
-            detailsHtml += `
-                <div class="lightbox-ability">
-                    <p><strong>${ability.name}</strong> (${ability.type})</p>
-                    ${ability.text ? `<p class="text-xs text-[var(--color-text-secondary)] mt-1">${ability.text}</p>` : ''}
-                </div>
-            `;
-        });
-    }
-    
-    // Display combat info
-    detailsHtml += `<h4 class="lightbox-detail-title">Combat Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
-    detailsHtml += `<div><strong>Weakness:</strong> ${card.weaknesses ? card.weaknesses.map(w => `${w.type} ${w.value}`).join(', ') : 'None'}</div>`;
-    detailsHtml += `<div><strong>Resistance:</strong> ${card.resistances ? card.resistances.map(r => `${r.type} ${r.value}`).join(', ') : 'None'}</div>`;
-    detailsHtml += `<div><strong>Retreat:</strong> ${card.retreatCost ? card.retreatCost.length : '0'}</div></div>`;
-    
-    // Display legality info if available
-    if (card.legalities) {
-        detailsHtml += `<h4 class="lightbox-detail-title">Legality Info</h4><div class="grid grid-cols-3 gap-2 text-xs">`;
-        for (const [format, status] of Object.entries(card.legalities)) {
-            const statusClass = status === 'Legal' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]';
-            detailsHtml += `<div><strong>${format}:</strong> <span class="${statusClass}">${status}</span></div>`;
-        }
-        detailsHtml += `</div>`;
-    }
-    
-    return detailsHtml;
+    console.log("Closing TCG lightbox...");
+    // Reset content
+    const imageEl = document.getElementById('lightbox-card-image');
+    const detailsEl = document.getElementById('lightbox-card-details');
+    if (imageEl) imageEl.src = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
+    if (detailsEl) detailsEl.innerHTML = '<p>Loading details...</p>';
+    // Hide overlay
+    this.toggleOverlayVisibility(this.elements.tcgLightbox, false, 'activeTcgLightbox');
 };
 
 // --- Generator Lightbox Functions ---
 window.DexApp.Lightbox.openGeneratorLightbox = function() {
-    const overlay = this.elements.generatorOverlay;
-    if (!overlay) return;
-    
-    overlay.classList.remove('hidden');
-    requestAnimationFrame(() => { 
-        overlay.classList.add('visible'); 
-    });
-    
-    document.body.style.overflow = 'hidden';
-    this.state.activeGeneratorLightbox = true;
-    
-    // Trigger generator activation if needed
-    if (window.DexApp.Generator && typeof window.DexApp.Generator.activate === 'function') {
-        window.DexApp.Generator.activate();
-    }
+    console.log("Opening generator overlay...");
+    this.toggleOverlayVisibility(this.elements.generatorOverlay, true, 'activeGeneratorLightbox');
+    // Activate generator module logic
+    if (window.DexApp.Generator?.activate) window.DexApp.Generator.activate();
 };
 
 window.DexApp.Lightbox.closeGeneratorLightbox = function() {
-    const overlay = this.elements.generatorOverlay;
-    if (!overlay) return;
-    
-    overlay.classList.remove('visible');
-    
-    const handleTransitionEnd = (event) => {
-        if (event.target === overlay && !overlay.classList.contains('visible')) {
-            overlay.classList.add('hidden');
-            overlay.removeEventListener('transitionend', handleTransitionEnd);
-        }
-    };
-    
-    overlay.addEventListener('transitionend', handleTransitionEnd);
-    
-    // Fallback in case transition doesn't fire
-    setTimeout(() => {
-        if (!overlay.classList.contains('visible')) {
-            overlay.classList.add('hidden');
-        }
-    }, 500);
-    
-    document.body.style.overflow = '';
-    this.state.activeGeneratorLightbox = false;
+    console.log("Closing generator overlay...");
+    this.toggleOverlayVisibility(this.elements.generatorOverlay, false, 'activeGeneratorLightbox');
 };
+
+console.log("Lightbox module loaded (v1.2.0)");

@@ -14,17 +14,23 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v3
 
+    # Use pnpm setup action for better caching and installation
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        version: 10 # Specify your pnpm version if needed
+
     - name: Set up Node.js
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: '18' # Or your preferred LTS version
-        cache: 'pnpm' # Or 'npm' if you use npm
+        cache: 'pnpm' # Cache pnpm dependencies
 
     - name: Install dependencies
-      run: pnpm install # Or npm install
+      run: pnpm install --frozen-lockfile # Use --frozen-lockfile for CI
 
-    - name: Run build script
-      run: node scripts/build-pokedex-data.js
+    - name: Run build script (Using package.json script) # <-- CHANGE HERE
+      run: pnpm run build # Use the build script defined in package.json
       env:
          # Add any necessary environment variables here if needed
          # e.g., API_KEY if PokeAPI required one (it doesn't currently)
