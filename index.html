@@ -1245,22 +1245,18 @@
                 </div>
             </div>
         </div>
-        <script src="dex/js/modules/utils.js"></script>
-        <!-- First load core utilities -->
-        <script src="dex/js/modules/constants.js"></script>
-        <script src="dex/js/modules/utils.js"></script>
-        <!-- Then load API module -->
-        <script src="dex/js/modules/api.js"></script>
-        <!-- Then load visual layer modules -->
-        <script src="dex/js/modules/lightbox.js"></script>
-        <!-- Then load feature modules -->
-        <script src="dex/js/modules/dexGrid.js"></script>
-        <script src="dex/js/modules/detailView.js"></script>
-        <script src="dex/js/modules/tcgModule.js"></script>
-        <script src="dex/js/modules/generator.js"></script>
-        <!-- Finally load the main app -->
-        <script src="dex/js/app.js"></script>
-        <!-- Optional: Add diagnostics script last -->
-        <script src="dex/js/diagnostic.js"></script>
+        <!-- Add loading.js before app.js but after all other modules -->
+<script src="dex/js/modules/constants.js"></script>
+<script src="dex/js/modules/utils.js"></script>
+<script src="dex/js/modules/api.js"></script>
+<script src="dex/js/modules/lightbox.js"></script>
+<script src="dex/js/modules/dexGrid.js"></script>
+<script src="dex/js/modules/detailView.js"></script>
+<script src="dex/js/modules/tcgModule.js"></script>
+<script src="dex/js/modules/generator.js"></script>
+<!-- Add loading.js here -->
+<script src="dex/js/modules/loading.js"></script>
+<!-- Finally load the main app -->
+<script src="dex/js/app.js"></script>
     </body>
 </html>
