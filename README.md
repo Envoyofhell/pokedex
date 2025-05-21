@@ -2,11 +2,7 @@
 
 A web-based application that allows users to browse Pokémon by generation, search for specific Pokémon, and view detailed information including game stats, descriptions, moves, abilities, and related Trading Card Game (TCG) cards.
 
-![Placeholder Screenshot - Grid View](https://via.placeholder.com/600x400.png?text=Pokedex+Grid+View+Screenshot)
-_Suggestion: Replace the placeholder above with an actual screenshot of your Pokedex grid._
 
-![Placeholder Screenshot - Detail View](https://via.placeholder.com/600x400.png?text=Pokemon+Detail+View+Screenshot)
-_Suggestion: Replace the placeholder above with an actual screenshot of the Pokémon detail lightbox._
 
 ## ✨ Features
 
@@ -60,9 +56,9 @@ This project is currently contained within a single HTML file. To run it:
     * Open the `.html` file you saved in a text editor.
     * Locate the following line within the `<script>` tag:
         ```javascript
-        const TCG_API_KEY = 'a65acbfc-55e5-4d2c-9278-253872a1bc5a'; // Replace with your key
+        const TCG_API_KEY = ''; // Replace with your key
         ```
-    * Replace the placeholder string `'a65acbfc-55e5-4d2c-9278-253872a1bc5a'` (or `'YOUR_API_KEY'`) with the actual API key you obtained.
+    * Replace the placeholder string `''` (or `'YOUR_API_KEY'`) with the actual API key you obtained.
     * **Important:** Keep your API key private. If deploying this project publicly, consider implementing a backend proxy to handle TCG API requests securely instead of embedding the key directly in the frontend code.
 4.  **Open in Browser:** Open the modified `.html` file directly in your web browser (e.g., Chrome, Firefox, Edge).
 
